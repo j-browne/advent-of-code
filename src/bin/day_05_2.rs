@@ -9,7 +9,7 @@ fn main() {
 
     let mut total = 0;
     let mut i = 0;
-    let mut pass = String::new();
+    let mut pass: [Option<char>; 8] = [None; 8];
     while total < 8 {
         let mut hash = [0u8; 16];
         hasher.input(id);
@@ -22,12 +22,20 @@ fn main() {
         }
 
         if hash_str.starts_with("00000") {
-            total += 1;
-            pass.push(hash_str.as_bytes()[5] as char);
+            let pos = (hash_str.as_bytes()[5] - b'0') as usize;
+            if pos < 8 && pass[pos].is_none() {
+                total += 1;
+                pass[pos] = Some(hash_str.as_bytes()[6] as char);
+            }
         }
 
         hasher.reset();
         i += 1;
+
+        for j in 0..8 {
+            print!("{}", pass[j].unwrap_or('_'));
+        }
+        print!("\r");
     }
-    println!("{}", pass);
+    println!("");
 }
