@@ -6,3 +6,4 @@ authors = ["Justin Browne <jebdude89@gmail.com>"]
 [dependencies]
 regex = "*"
 rust-crypto = "^0.2"
+pcre = "*"

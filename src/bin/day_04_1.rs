@@ -31,14 +31,14 @@ fn checksum(s: &str) -> String {
 }
 
 fn main() {
-    let re = Regex::new(r"([a-z-]+)-([:digit:]+)\[([a-z]+)\]").unwrap();
+    let re = Regex::new(r"([a-z-]+)-([[:digit:]]+)\[([a-z]+)\]").unwrap();
     let stdin = ::std::io::stdin();
     let mut sum = 0;
 
     for line in stdin.lock().lines() {
         for cap in re.captures_iter(&line.unwrap()) {
-            if checksum(cap.at(1).unwrap()) == cap.at(3).unwrap() {
-                sum += cap.at(2).unwrap().parse::<u32>().unwrap();
+            if checksum(cap.get(1).unwrap().as_str()) == cap.get(3).unwrap().as_str() {
+                sum += cap.get(2).unwrap().as_str().parse::<u32>().unwrap();
             }
         }
     }

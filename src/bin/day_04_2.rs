@@ -48,17 +48,15 @@ fn shift(s: &str, i: u8) -> String {
 }
 
 fn main() {
-    let re = Regex::new(r"([a-z-]+)-([:digit:]+)\[([a-z]+)\]").unwrap();
+    let re = Regex::new(r"([a-z-]+)-([[:digit:]]+)\[([a-z]+)\]").unwrap();
     let stdin = ::std::io::stdin();
 
     for line in stdin.lock().lines() {
         for cap in re.captures_iter(&line.unwrap()) {
-            //if checksum(cap.at(1).unwrap()) == cap.at(3).unwrap() {
             for i in 1..27 {
-                let sector = cap.at(2).unwrap().parse::<u32>().unwrap();
-                println!("{}: {}", shift(cap.at(1).unwrap(), i), sector);
+                let sector = cap.get(2).unwrap().as_str().parse::<u32>().unwrap();
+                println!("{}: {}", shift(cap.get(1).unwrap().as_str(), i), sector);
             }
-            //}
         }
     }
 }
