@@ -4,8 +4,11 @@ use std::{
 };
 
 fn main() {
-    let input = stdin()
-        .lock()
+    println!("{}", day04_1(stdin().lock()));
+}
+
+fn day04_1(input: impl BufRead) -> usize {
+    let bounds = input
         .lines()
         .take(1)
         .next()
@@ -16,8 +19,7 @@ fn main() {
         .map(|x| x.parse::<u32>().unwrap())
         .collect::<Vec<u32>>();
 
-    let valids = (input[0]..=input[1]).filter(|x| valid(*x)).count();
-    println!("{:?}", valids);
+    (bounds[0]..=bounds[1]).filter(|x| valid(*x)).count()
 }
 
 fn valid(pass: u32) -> bool {
@@ -45,4 +47,17 @@ fn valid(pass: u32) -> bool {
         .any(|(_a, b)| *b >= 2);
 
     monotonic && double
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn day04_1() {
+        use std::{fs::File, io::BufReader};
+
+        assert_eq!(
+            super::day04_1(BufReader::new(File::open("input/input_day04.txt").unwrap())),
+            579
+        );
+    }
 }

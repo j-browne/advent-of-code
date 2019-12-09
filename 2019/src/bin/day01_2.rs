@@ -1,8 +1,11 @@
 use std::io::{stdin, BufRead};
 
 fn main() {
-    let fuel_sum: i32 = stdin()
-        .lock()
+    println!("{}", day01_2(stdin().lock()));
+}
+
+fn day01_2(input: impl BufRead) -> i32 {
+    input
         .lines()
         .map(|x| {
             let mass: i32 = x.unwrap().parse().unwrap();
@@ -19,7 +22,18 @@ fn main() {
 
             fuel
         })
-        .sum();
+        .sum()
+}
 
-    println!("{}", fuel_sum);
+#[cfg(test)]
+mod test {
+    #[test]
+    fn day01_2() {
+        use std::{fs::File, io::BufReader};
+
+        assert_eq!(
+            super::day01_2(BufReader::new(File::open("input/input_day01.txt").unwrap())),
+            5055835
+        );
+    }
 }

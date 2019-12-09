@@ -119,8 +119,11 @@ impl TryFrom<&str> for Move {
 }
 
 fn main() {
-    let pos = stdin()
-        .lock()
+    println!("{}", day03_1(stdin().lock()));
+}
+
+fn day03_1(input: impl BufRead) -> i32 {
+    let pos = input
         .lines()
         .take(2)
         .map(|line| {
@@ -144,11 +147,22 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let min_dist = pos[0]
+    pos[0]
         .intersection(&pos[1])
         .map(|a| a.0.abs() + a.1.abs())
         .min()
-        .unwrap();
+        .unwrap()
+}
 
-    println!("{}", min_dist);
+#[cfg(test)]
+mod test {
+    #[test]
+    fn day03_1() {
+        use std::{fs::File, io::BufReader};
+
+        assert_eq!(
+            super::day03_1(BufReader::new(File::open("input/input_day03.txt").unwrap())),
+            1211
+        );
+    }
 }

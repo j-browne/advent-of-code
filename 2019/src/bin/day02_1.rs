@@ -2,8 +2,11 @@ use aoc_2019::intcode::Machine;
 use std::io::{stdin, BufRead};
 
 fn main() {
-    let memory: Vec<u32> = stdin()
-        .lock()
+    println!("{}", day02_1(stdin().lock()));
+}
+
+fn day02_1(input: impl BufRead) -> u32 {
+    let memory: Vec<u32> = input
         .lines()
         .take(1)
         .next()
@@ -20,6 +23,18 @@ fn main() {
     machine.memory[2] = 2;
 
     machine.run().unwrap();
+    machine.memory[0]
+}
 
-    println!("{}", machine.memory[0]);
+#[cfg(test)]
+mod test {
+    #[test]
+    fn day02_1() {
+        use std::{fs::File, io::BufReader};
+
+        assert_eq!(
+            super::day02_1(BufReader::new(File::open("input/input_day02.txt").unwrap())),
+            2842648
+        );
+    }
 }

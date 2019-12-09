@@ -2,8 +2,11 @@ use aoc_2019::intcode::Machine;
 use std::io::{stdin, BufRead};
 
 fn main() {
-    let memory: Vec<u32> = stdin()
-        .lock()
+    println!("{}", day02_2(stdin().lock()));
+}
+
+fn day02_2(input: impl BufRead) -> u32 {
+    let memory: Vec<u32> = input
         .lines()
         .take(1)
         .next()
@@ -15,6 +18,7 @@ fn main() {
         .collect();
 
     let machine = Machine { memory, cursor: 0 };
+    let mut output = None;
 
     'outer: for i in 0..=99 {
         for j in 0..=99 {
@@ -25,9 +29,24 @@ fn main() {
             machine.run().unwrap();
 
             if machine.memory[0] == 19_690_720 {
-                println!("{}", 100 * i + j);
+                output = Some(100 * i + j);
                 break 'outer;
             }
         }
+    }
+
+    output.unwrap()
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn day02_2() {
+        use std::{fs::File, io::BufReader};
+
+        assert_eq!(
+            super::day02_2(BufReader::new(File::open("input/input_day02.txt").unwrap())),
+            9074
+        );
     }
 }
