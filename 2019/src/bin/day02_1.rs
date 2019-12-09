@@ -1,4 +1,4 @@
-use advent_2019::intcode::Machine;
+use aoc_2019::intcode::Machine;
 use std::io::{stdin, BufRead};
 
 fn main() {
