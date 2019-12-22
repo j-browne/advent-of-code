@@ -5,8 +5,8 @@ fn main() {
     println!("{}", day02_2(stdin().lock()));
 }
 
-fn day02_2(input: impl BufRead) -> i32 {
-    let memory: Vec<i32> = input
+fn day02_2(input: impl BufRead) -> i64 {
+    let memory: Vec<i64> = input
         .lines()
         .take(1)
         .next()
@@ -14,7 +14,7 @@ fn day02_2(input: impl BufRead) -> i32 {
         .unwrap()
         .trim()
         .split(',')
-        .map(|x| x.parse::<i32>().unwrap())
+        .map(|x| x.parse::<i64>().unwrap())
         .collect();
 
     let machine = Machine::with_memory(memory);
@@ -23,12 +23,12 @@ fn day02_2(input: impl BufRead) -> i32 {
     'outer: for i in 0..=99 {
         for j in 0..=99 {
             let mut machine = machine.clone();
-            machine.memory[1] = i;
-            machine.memory[2] = j;
+            *machine.get_memory_mut(1) = i;
+            *machine.get_memory_mut(2) = j;
 
             machine.run().unwrap();
 
-            if machine.memory[0] == 19_690_720 {
+            if machine.get_memory(0) == 19_690_720 {
                 output = Some(100 * i + j);
                 break 'outer;
             }

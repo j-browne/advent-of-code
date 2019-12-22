@@ -1,4 +1,10 @@
-use std::{collections::VecDeque, convert::TryFrom};
+use std::{cell::RefCell, collections::VecDeque, convert::TryFrom, iter::repeat};
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Return {
+    Stopped,
+    EmptyInput,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Error {
@@ -18,11 +24,12 @@ pub enum Instruction {
     JumpIfFalse(ParameterMode, ParameterMode),
     LessThan(ParameterMode, ParameterMode, ParameterMode),
     EqualTo(ParameterMode, ParameterMode, ParameterMode),
+    AdjustRelativeBase(ParameterMode),
 }
 
-impl TryFrom<i32> for Instruction {
+impl TryFrom<i64> for Instruction {
     type Error = Error;
-    fn try_from(mut value: i32) -> Result<Self, Self::Error> {
+    fn try_from(mut value: i64) -> Result<Self, Self::Error> {
         let code = value % 100;
         value /= 100;
         match code {
@@ -78,6 +85,10 @@ impl TryFrom<i32> for Instruction {
                 let mode_2 = ParameterMode::try_from(value % 10)?;
                 Ok(Self::EqualTo(mode_0, mode_1, mode_2))
             }
+            9 => {
+                let mode = ParameterMode::try_from(value % 10)?;
+                Ok(Self::AdjustRelativeBase(mode))
+            }
             99 => Ok(Self::Stop),
             _ => Err(Self::Error::UnknownOpCode),
         }
@@ -88,14 +99,16 @@ impl TryFrom<i32> for Instruction {
 pub enum ParameterMode {
     Position,
     Immediate,
+    Relative,
 }
 
-impl TryFrom<i32> for ParameterMode {
+impl TryFrom<i64> for ParameterMode {
     type Error = Error;
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(Self::Position),
             1 => Ok(Self::Immediate),
+            2 => Ok(Self::Relative),
             _ => Err(Self::Error::UnknownParameterMode),
         }
     }
@@ -103,10 +116,11 @@ impl TryFrom<i32> for ParameterMode {
 
 #[derive(Debug, Default, Clone)]
 pub struct Machine {
-    pub memory: Vec<i32>,
-    pub cursor: usize,
-    pub input: VecDeque<i32>,
-    pub output: Vec<i32>,
+    memory: RefCell<Vec<i64>>,
+    pub cursor: i64,
+    pub input: VecDeque<i64>,
+    pub output: VecDeque<i64>,
+    relative_base: i64,
 }
 
 impl Machine {
@@ -114,19 +128,20 @@ impl Machine {
         Self::default()
     }
 
-    pub fn with_memory<M: Into<Vec<i32>>>(memory: M) -> Self {
-        let memory = memory.into();
+    pub fn with_memory<M: Into<Vec<i64>>>(memory: M) -> Self {
+        let memory = RefCell::new(memory.into());
         Self {
             memory,
             ..Self::default()
         }
     }
 
-    pub fn with_memory_input<M: Into<Vec<i32>>, I: Into<VecDeque<i32>>>(
-        memory: M,
-        input: I,
-    ) -> Self {
-        let memory = memory.into();
+    pub fn with_memory_input<M, I>(memory: M, input: I) -> Self
+    where
+        M: Into<Vec<i64>>,
+        I: Into<VecDeque<i64>>,
+    {
+        let memory = RefCell::new(memory.into());
         let input = input.into();
         Self {
             memory,
@@ -135,87 +150,123 @@ impl Machine {
         }
     }
 
-    fn get(&self, input: i32, mode: ParameterMode) -> i32 {
+    pub fn get_memory(&self, address: i64) -> i64 {
+        let len = self.memory.borrow().len();
+        if len <= address as usize {
+            self.memory
+                .borrow_mut()
+                .extend(repeat(0).take(1 + address as usize - len));
+        }
+        self.memory.borrow()[address as usize]
+    }
+
+    pub fn get_memory_mut(&mut self, address: i64) -> &mut i64 {
+        let len = self.memory.borrow().len();
+        if len <= address as usize {
+            self.memory
+                .borrow_mut()
+                .extend(repeat(0).take(1 + address as usize - len));
+        }
+        &mut self.memory.get_mut()[address as usize]
+    }
+
+    fn get(&self, input: i64, mode: ParameterMode) -> i64 {
         use ParameterMode::*;
         match mode {
-            Position => self.memory[input as usize],
+            Position => self.get_memory(input),
             Immediate => input,
+            Relative => self.get_memory(self.relative_base + input),
         }
     }
 
-    fn get_mut(&mut self, input: i32, mode: ParameterMode) -> &mut i32 {
+    fn get_mut(&mut self, input: i64, mode: ParameterMode) -> &mut i64 {
         use ParameterMode::*;
         match mode {
-            Position => &mut self.memory[input as usize],
+            Position => self.get_memory_mut(input),
             Immediate => panic!("trying to write in Immediate Mode"),
+            Relative => self.get_memory_mut(self.relative_base + input),
         }
     }
 
-    pub fn run(&mut self) -> Result<(), Error> {
-        while Instruction::try_from(self.memory[self.cursor])? != Instruction::Stop {
-            self.step()?;
+    pub fn run(&mut self) -> Result<Return, Error> {
+        while Instruction::try_from(self.get_memory(self.cursor))? != Instruction::Stop {
+            let ret = self.step();
+            match ret {
+                Err(Error::EmptyInput) => {
+                    return Ok(Return::EmptyInput);
+                }
+                Err(e) => {
+                    return Err(e);
+                }
+                Ok(()) => {}
+            }
         }
-        Ok(())
+        Ok(Return::Stopped)
     }
 
     pub fn step(&mut self) -> Result<(), Error> {
-        match Instruction::try_from(self.memory[self.cursor])? {
+        match Instruction::try_from(self.get_memory(self.cursor))? {
             Instruction::Add(mode_0, mode_1, mode_2) => {
-                let val_0 = self.get(self.memory[self.cursor + 1], mode_0);
-                let val_1 = self.get(self.memory[self.cursor + 2], mode_1);
-                let val_2 = self.get_mut(self.memory[self.cursor + 3], mode_2);
+                let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
+                let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
+                let val_2 = self.get_mut(self.get_memory(self.cursor + 3), mode_2);
                 *val_2 = val_0 + val_1;
                 self.cursor += 4;
             }
             Instruction::Mul(mode_0, mode_1, mode_2) => {
-                let val_0 = self.get(self.memory[self.cursor + 1], mode_0);
-                let val_1 = self.get(self.memory[self.cursor + 2], mode_1);
-                let val_2 = self.get_mut(self.memory[self.cursor + 3], mode_2);
+                let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
+                let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
+                let val_2 = self.get_mut(self.get_memory(self.cursor + 3), mode_2);
                 *val_2 = val_0 * val_1;
                 self.cursor += 4;
             }
             Instruction::Input(mode) => {
                 let input = self.input.pop_front().ok_or(Error::EmptyInput)?;
-                let val = self.get_mut(self.memory[self.cursor + 1], mode);
+                let val = self.get_mut(self.get_memory(self.cursor + 1), mode);
                 *val = input;
                 self.cursor += 2;
             }
             Instruction::Output(mode) => {
-                let val = self.get(self.memory[self.cursor + 1], mode);
-                self.output.push(val);
+                let val = self.get(self.get_memory(self.cursor + 1), mode);
+                self.output.push_back(val);
                 self.cursor += 2;
             }
             Instruction::JumpIfTrue(mode_0, mode_1) => {
-                let val_0 = self.get(self.memory[self.cursor + 1], mode_0);
-                let val_1 = self.get(self.memory[self.cursor + 2], mode_1);
+                let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
+                let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
                 if val_0 != 0 {
-                    self.cursor = val_1 as usize;
+                    self.cursor = val_1;
                 } else {
                     self.cursor += 3;
                 }
             }
             Instruction::JumpIfFalse(mode_0, mode_1) => {
-                let val_0 = self.get(self.memory[self.cursor + 1], mode_0);
-                let val_1 = self.get(self.memory[self.cursor + 2], mode_1);
+                let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
+                let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
                 if val_0 == 0 {
-                    self.cursor = val_1 as usize;
+                    self.cursor = val_1;
                 } else {
                     self.cursor += 3;
                 }
             }
             Instruction::LessThan(mode_0, mode_1, mode_2) => {
-                let val_0 = self.get(self.memory[self.cursor + 1], mode_0);
-                let val_1 = self.get(self.memory[self.cursor + 2], mode_1);
-                let val_2 = self.get_mut(self.memory[self.cursor + 3], mode_2);
+                let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
+                let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
+                let val_2 = self.get_mut(self.get_memory(self.cursor + 3), mode_2);
                 *val_2 = if val_0 < val_1 { 1 } else { 0 };
                 self.cursor += 4;
             }
             Instruction::EqualTo(mode_0, mode_1, mode_2) => {
-                let val_0 = self.get(self.memory[self.cursor + 1], mode_0);
-                let val_1 = self.get(self.memory[self.cursor + 2], mode_1);
-                let val_2 = self.get_mut(self.memory[self.cursor + 3], mode_2);
+                let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
+                let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
+                let val_2 = self.get_mut(self.get_memory(self.cursor + 3), mode_2);
                 *val_2 = if val_0 == val_1 { 1 } else { 0 };
                 self.cursor += 4;
+            }
+            Instruction::AdjustRelativeBase(mode) => {
+                let val = self.get(self.get_memory(self.cursor + 1), mode);
+                self.relative_base += val;
+                self.cursor += 2;
             }
             Instruction::Stop => {}
         }

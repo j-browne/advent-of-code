@@ -2,10 +2,10 @@ use aoc_2019::intcode::Machine;
 use std::io::{stdin, BufRead};
 
 fn main() {
-    println!("{}", day05_2(stdin().lock()));
+    println!("{}", day09_2(stdin().lock()));
 }
 
-fn day05_2(input: impl BufRead) -> i64 {
+fn day09_2(input: impl BufRead) -> i64 {
     let memory: Vec<i64> = input
         .lines()
         .take(1)
@@ -17,7 +17,7 @@ fn day05_2(input: impl BufRead) -> i64 {
         .map(|x| x.parse::<i64>().unwrap())
         .collect();
 
-    let mut machine = Machine::with_memory_input(memory, vec![5]);
+    let mut machine = Machine::with_memory_input(memory, vec![2]);
 
     machine.run().unwrap();
     *machine.output.back().unwrap()
@@ -26,12 +26,12 @@ fn day05_2(input: impl BufRead) -> i64 {
 #[cfg(test)]
 mod test {
     #[test]
-    fn day05_2() {
+    fn day09_2() {
         use std::{fs::File, io::BufReader};
 
         assert_eq!(
-            super::day05_2(BufReader::new(File::open("input/input_day05.txt").unwrap())),
-            9168267
+            super::day09_2(BufReader::new(File::open("input/input_day09.txt").unwrap())),
+            60962
         );
     }
 }

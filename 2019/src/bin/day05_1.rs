@@ -5,8 +5,8 @@ fn main() {
     println!("{}", day05_1(stdin().lock()));
 }
 
-fn day05_1(input: impl BufRead) -> i32 {
-    let memory: Vec<i32> = input
+fn day05_1(input: impl BufRead) -> i64 {
+    let memory: Vec<i64> = input
         .lines()
         .take(1)
         .next()
@@ -14,13 +14,13 @@ fn day05_1(input: impl BufRead) -> i32 {
         .unwrap()
         .trim()
         .split(',')
-        .map(|x| x.parse::<i32>().unwrap())
+        .map(|x| x.parse::<i64>().unwrap())
         .collect();
 
     let mut machine = Machine::with_memory_input(memory, vec![1]);
 
     machine.run().unwrap();
-    *machine.output.last().unwrap()
+    *machine.output.back().unwrap()
 }
 
 #[cfg(test)]
