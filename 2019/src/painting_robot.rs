@@ -1,5 +1,5 @@
 use crate::intcode::{self, Machine, Return};
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::TryFrom};
 
 #[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct Position {
@@ -67,8 +67,8 @@ impl Robot {
         Self {
             machine,
             facing: Direction::Up,
-            position: Default::default(),
-            painted_tiles: Default::default(),
+            position: Position::default(),
+            painted_tiles: HashMap::default(),
         }
     }
 
@@ -125,27 +125,27 @@ impl Robot {
     }
 
     pub fn num_painted(&self) -> u32 {
-        self.painted_tiles.len() as u32
+        u32::try_from(self.painted_tiles.len()).unwrap()
     }
 
     pub fn painted_image(&self) -> String {
         let mut output = String::new();
 
-        let xmin = self.painted_tiles.iter().map(|(x, _)| x.x).min().unwrap();
-        let ymin = self.painted_tiles.iter().map(|(x, _)| x.y).min().unwrap();
-        let xmax = self.painted_tiles.iter().map(|(x, _)| x.x).max().unwrap();
-        let ymax = self.painted_tiles.iter().map(|(x, _)| x.y).max().unwrap();
+        let x_min = self.painted_tiles.iter().map(|(x, _)| x.x).min().unwrap();
+        let y_min = self.painted_tiles.iter().map(|(x, _)| x.y).min().unwrap();
+        let x_max = self.painted_tiles.iter().map(|(x, _)| x.x).max().unwrap();
+        let y_max = self.painted_tiles.iter().map(|(x, _)| x.y).max().unwrap();
 
         output.push('╔');
-        for _ in xmin..=xmax {
+        for _ in x_min..=x_max {
             output.push('═');
         }
         output.push('╗');
         output.push('\n');
 
-        for y in (ymin..=ymax).rev() {
+        for y in (y_min..=y_max).rev() {
             output.push('║');
-            for x in xmin..=xmax {
+            for x in x_min..=x_max {
                 match self
                     .painted_tiles
                     .get(&Position { x, y })
@@ -160,7 +160,7 @@ impl Robot {
         }
 
         output.push('╚');
-        for _ in xmin..=xmax {
+        for _ in x_min..=x_max {
             output.push('═');
         }
         output.push('╝');

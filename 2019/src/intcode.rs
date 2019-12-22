@@ -30,9 +30,9 @@ pub enum Instruction {
 impl TryFrom<i64> for Instruction {
     type Error = Error;
     fn try_from(mut value: i64) -> Result<Self, Self::Error> {
-        let code = value % 100;
+        let op_code = value % 100;
         value /= 100;
-        match code {
+        match op_code {
             1 => {
                 let mode_0 = ParameterMode::try_from(value % 10)?;
                 value /= 10;
@@ -124,10 +124,12 @@ pub struct Machine {
 }
 
 impl Machine {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[must_use]
     pub fn with_memory<M: Into<Vec<i64>>>(memory: M) -> Self {
         let memory = RefCell::new(memory.into());
         Self {
@@ -136,6 +138,7 @@ impl Machine {
         }
     }
 
+    #[must_use]
     pub fn with_memory_input<M, I>(memory: M, input: I) -> Self
     where
         M: Into<Vec<i64>>,
@@ -150,26 +153,29 @@ impl Machine {
         }
     }
 
+    #[must_use]
     pub fn get_memory(&self, address: i64) -> i64 {
         let len = self.memory.borrow().len();
-        if len <= address as usize {
+        if len <= usize::try_from(address).unwrap() {
             self.memory
                 .borrow_mut()
-                .extend(repeat(0).take(1 + address as usize - len));
+                .extend(repeat(0).take(1 + usize::try_from(address).unwrap() - len));
         }
-        self.memory.borrow()[address as usize]
+        self.memory.borrow()[usize::try_from(address).unwrap()]
     }
 
+    #[must_use]
     pub fn get_memory_mut(&mut self, address: i64) -> &mut i64 {
         let len = self.memory.borrow().len();
-        if len <= address as usize {
+        if len <= usize::try_from(address).unwrap() {
             self.memory
                 .borrow_mut()
-                .extend(repeat(0).take(1 + address as usize - len));
+                .extend(repeat(0).take(1 + usize::try_from(address).unwrap() - len));
         }
-        &mut self.memory.get_mut()[address as usize]
+        &mut self.memory.get_mut()[usize::try_from(address).unwrap()]
     }
 
+    #[must_use]
     fn get(&self, input: i64, mode: ParameterMode) -> i64 {
         use ParameterMode::*;
         match mode {
@@ -179,6 +185,7 @@ impl Machine {
         }
     }
 
+    #[must_use]
     fn get_mut(&mut self, input: i64, mode: ParameterMode) -> &mut i64 {
         use ParameterMode::*;
         match mode {
@@ -234,10 +241,10 @@ impl Machine {
             Instruction::JumpIfTrue(mode_0, mode_1) => {
                 let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
                 let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
-                if val_0 != 0 {
-                    self.cursor = val_1;
-                } else {
+                if val_0 == 0 {
                     self.cursor += 3;
+                } else {
+                    self.cursor = val_1;
                 }
             }
             Instruction::JumpIfFalse(mode_0, mode_1) => {

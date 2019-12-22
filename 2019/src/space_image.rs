@@ -11,6 +11,7 @@ pub struct SpaceImage {
 }
 
 impl SpaceImage {
+    #[must_use]
     pub fn new(width: usize, height: usize, data: Vec<u32>) -> Self {
         Self {
             width,
@@ -19,6 +20,7 @@ impl SpaceImage {
         }
     }
 
+    #[must_use]
     pub fn occurrences_in_layers(&self) -> Vec<HashMap<u32, u32>> {
         self.data
             .chunks(self.width * self.height)
@@ -31,6 +33,7 @@ impl SpaceImage {
             .collect::<Vec<_>>()
     }
 
+    #[must_use]
     pub fn render(self) -> RenderedImage {
         let SpaceImage {
             width,
@@ -64,29 +67,29 @@ pub struct RenderedImage {
 
 impl Display for RenderedImage {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        write!(f, "╔")?;
+        write!(f, "\u{2554}")?;
         for _ in 0..self.width {
-            write!(f, "═")?;
+            write!(f, "\u{2550}")?;
         }
-        writeln!(f, "╗")?;
+        writeln!(f, "\u{2557}")?;
 
         for i in 0..self.height {
-            write!(f, "║")?;
+            write!(f, "\u{2551}")?;
             for j in 0..self.width {
                 match self.data[self.width * i + j] {
-                    0 => write!(f, "█")?,
+                    0 => write!(f, "\u{2588}")?,
                     1 => write!(f, " ")?,
-                    _ => write!(f, "░")?,
+                    _ => write!(f, "\u{2591}")?,
                 };
             }
-            writeln!(f, "║")?;
+            writeln!(f, "\u{2551}")?;
         }
 
-        write!(f, "╚")?;
+        write!(f, "\u{255a}")?;
         for _ in 0..self.width {
-            write!(f, "═")?;
+            write!(f, "\u{2550}")?;
         }
-        write!(f, "╝")?;
+        write!(f, "\u{255d}")?;
 
         Ok(())
     }

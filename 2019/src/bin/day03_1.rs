@@ -130,7 +130,7 @@ fn day03_1(input: impl BufRead) -> i32 {
             line.unwrap()
                 .trim()
                 .split(',')
-                .map(|x| {
+                .flat_map(|x| {
                     let Move {
                         direction,
                         distance,
@@ -139,9 +139,8 @@ fn day03_1(input: impl BufRead) -> i32 {
                         direction,
                         distance: 1,
                     })
-                    .take(distance as usize)
+                    .take(usize::try_from(distance).unwrap())
                 })
-                .flatten()
                 .scan(Position(0, 0), |p, m| Some(p + m))
                 .collect::<HashSet<Position>>()
         })

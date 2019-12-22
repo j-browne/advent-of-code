@@ -16,14 +16,18 @@ fn day10_2(input: impl BufRead) -> i32 {
     let asteroid_field = input
         .lines()
         .enumerate()
-        .map(|(i, line)| {
+        .flat_map(|(i, line)| {
             line.as_ref()
                 .unwrap()
                 .char_indices()
-                .map(|(j, x)| ((i as i32, j as i32), SpaceObject::try_from(x).unwrap()))
+                .map(|(j, x)| {
+                    (
+                        (i32::try_from(i).unwrap(), i32::try_from(j).unwrap()),
+                        SpaceObject::try_from(x).unwrap(),
+                    )
+                })
                 .collect::<Vec<_>>()
         })
-        .flatten()
         .filter_map(|(p, x)| (x == SpaceObject::Asteroid).then_some(p))
         .collect::<HashSet<_>>();
 
@@ -61,14 +65,14 @@ fn day10_2(input: impl BufRead) -> i32 {
     let mut angles = angles.into_iter().collect::<Vec<_>>();
 
     angles.sort_unstable_by_key(|x| x.0);
-    for (_, vec) in angles.iter_mut() {
+    for (_, vec) in &mut angles {
         vec.sort_unstable_by_key(|(x, y)| -((pos.0 - x) * (pos.0 - x) + (pos.1 - y) * (pos.1 - y)));
     }
 
     let mut last = None;
     let mut countdown = 200;
     while countdown > 0 {
-        for (_angle, vec) in angles.iter_mut() {
+        for (_angle, vec) in &mut angles {
             last = vec.pop();
             if last.is_some() {
                 countdown -= 1;

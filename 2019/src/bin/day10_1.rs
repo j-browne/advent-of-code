@@ -15,14 +15,18 @@ fn day10_1(input: impl BufRead) -> usize {
     let asteroid_field = input
         .lines()
         .enumerate()
-        .map(|(i, line)| {
+        .flat_map(|(i, line)| {
             line.as_ref()
                 .unwrap()
                 .char_indices()
-                .map(|(j, x)| ((i as i32, j as i32), SpaceObject::try_from(x).unwrap()))
+                .map(|(j, x)| {
+                    (
+                        (i32::try_from(i).unwrap(), i32::try_from(j).unwrap()),
+                        SpaceObject::try_from(x).unwrap(),
+                    )
+                })
                 .collect::<Vec<_>>()
         })
-        .flatten()
         .filter_map(|(p, x)| (x == SpaceObject::Asteroid).then_some(p))
         .collect::<HashSet<_>>();
 

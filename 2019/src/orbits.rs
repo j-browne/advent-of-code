@@ -15,6 +15,7 @@ pub struct Orbits {
 }
 
 impl Orbits {
+    #[must_use]
     pub fn num_orbits(&self, level: u32, root: &str) -> u32 {
         self.map[root]
             .children
@@ -23,29 +24,31 @@ impl Orbits {
             .sum()
     }
 
-    // do a breadth-first search
+    #[must_use]
+    // Do a breadth-first search because that allows you to quit as soon as you find the quickest
+    // path
     pub fn dist(&self, src: &str, dest: &str) -> Option<u32> {
         let mut to_search = VecDeque::<(u32, &str)>::new();
         let mut visited = HashSet::<&str>::new();
         to_search.push_back((0, &src));
 
         while !to_search.is_empty() {
-            let (dist, node) = to_search.pop_front().unwrap();
+            let (distance, node) = to_search.pop_front().unwrap();
             visited.insert(node);
 
             if node == dest {
-                return Some(dist - 2);
+                return Some(distance - 2);
             }
 
             if let Some(p) = &self.map[node].parent {
                 if !visited.contains(p.as_str()) {
-                    to_search.push_back((dist + 1, p));
+                    to_search.push_back((distance + 1, p));
                 }
             }
 
             for c in &self.map[node].children {
                 if !visited.contains(c.as_str()) {
-                    to_search.push_back((dist + 1, c));
+                    to_search.push_back((distance + 1, c));
                 }
             }
         }

@@ -33,7 +33,7 @@ fn run_amplifiers(program: &[i64], phase_settings: &[i64]) -> i64 {
     let mut signal = 0;
     let mut res = Return::EmptyInput;
     while res != Return::Stopped {
-        for m in machines.iter_mut() {
+        for m in &mut machines {
             m.input.push_back(signal);
             res = m.run().unwrap();
             signal = m.output.pop_front().unwrap();

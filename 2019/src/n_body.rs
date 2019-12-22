@@ -1,6 +1,7 @@
 use std::{
     borrow::Borrow,
     cmp::Ordering,
+    convert::TryFrom,
     ops::{Add, AddAssign, Index, IndexMut},
 };
 
@@ -10,42 +11,52 @@ pub struct Vector {
 }
 
 impl Vector {
+    #[must_use]
     pub fn new(x: i32, y: i32, z: i32) -> Self {
         Self { data: [x, y, z] }
     }
 
+    #[must_use]
     pub fn x(&self) -> i32 {
         self.data[0]
     }
 
+    #[must_use]
     pub fn y(&self) -> i32 {
         self.data[1]
     }
 
+    #[must_use]
     pub fn z(&self) -> i32 {
         self.data[2]
     }
 
+    #[must_use]
     pub fn x_mut(&mut self) -> &mut i32 {
         &mut self.data[0]
     }
 
+    #[must_use]
     pub fn y_mut(&mut self) -> &mut i32 {
         &mut self.data[1]
     }
 
+    #[must_use]
     pub fn z_mut(&mut self) -> &mut i32 {
         &mut self.data[2]
     }
 
+    #[must_use]
     pub fn data(self) -> [i32; 3] {
         self.data
     }
 
+    #[must_use]
     pub fn data_ref(&self) -> &[i32; 3] {
         &self.data
     }
 
+    #[must_use]
     pub fn data_mut(&mut self) -> &mut [i32; 3] {
         &mut self.data
     }
@@ -94,6 +105,7 @@ pub struct NBody {
 }
 
 impl NBody {
+    #[must_use]
     pub fn with_positions(positions: Vec<Vector>) -> Self {
         let velocities = vec![Vector::default(); positions.len()];
         Self {
@@ -135,15 +147,19 @@ impl NBody {
         }
     }
 
+    #[must_use]
     pub fn total_energy(&self) -> u32 {
-        self.positions
-            .iter()
-            .zip(self.velocities.iter())
-            .map(|(p, v)| {
-                let pot = p.data.iter().map(|x| x.abs()).sum::<i32>();
-                let kin = v.data.iter().map(|x| x.abs()).sum::<i32>();
-                pot * kin
-            })
-            .sum::<i32>() as u32
+        u32::try_from(
+            self.positions
+                .iter()
+                .zip(self.velocities.iter())
+                .map(|(p, v)| {
+                    let pot = p.data.iter().map(|x| x.abs()).sum::<i32>();
+                    let kin = v.data.iter().map(|x| x.abs()).sum::<i32>();
+                    pot * kin
+                })
+                .sum::<i32>(),
+        )
+        .unwrap()
     }
 }
