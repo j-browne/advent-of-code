@@ -194,7 +194,7 @@ impl Factory {
                     can_put_low = match dest_low {
                         &Id::Bot(id) => {
                             let bot = self.bots.get(&id).unwrap();
-                            bot.num_chips() <= 0
+                            bot.num_chips() == 0
                         }
                         &Id::Bin(_) => true,
                     };

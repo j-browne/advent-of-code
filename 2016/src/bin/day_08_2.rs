@@ -28,7 +28,7 @@ impl Disp {
 
         for _ in 0..num {
             let mut last = self.data[row][max_col];
-            for col in 0..(max_col + 1) {
+            for col in 0..=max_col {
                 ::std::mem::swap(&mut last, &mut self.data[row][col]);
             }
         }
@@ -39,7 +39,7 @@ impl Disp {
 
         for _ in 0..num {
             let mut last = self.data[max_row][col];
-            for row in 0..(max_row + 1) {
+            for row in 0..=max_row {
                 ::std::mem::swap(&mut last, &mut self.data[row][col]);
             }
         }
@@ -93,9 +93,9 @@ impl fmt::Display for Disp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in self.data.iter() {
             for i in row.iter() {
-                try!(write!(f, "{}", if *i {'#'} else {'.'}));
+                write!(f, "{}", if *i {'#'} else {'.'})?;
             }
-            try!(writeln!(f, ""));
+            writeln!(f)?;
         }
         Ok(())
     }

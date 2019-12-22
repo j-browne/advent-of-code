@@ -145,83 +145,84 @@ impl Factory {
                 let can_take;
                 let can_put;
 
-                can_take = match src {
-                    &Id::Bin(_) => {
+                can_take = match *src {
+                    Id::Bin(_) => {
                         true
                     }
-                    &Id::Bot(_) => {
+                    Id::Bot(_) => {
                         panic!("Using FromBin not from a Bin");
                     }
                 };
-                can_put = match dest {
-                    &Id::Bot(id) => {
+                can_put = match *dest {
+                    Id::Bot(id) => {
                         let bot = self.bots.get(&id).unwrap();
                         bot.num_chips() <= 1
                     }
-                    &Id::Bin(_) => true,
+                    Id::Bin(_) => true,
                 };
 
 
                 if can_take && can_put {
                     let chip;
 
-                    match src {
-                        &Id::Bin(id) => {
+                    match *src {
+                        Id::Bin(id) => {
                             chip = id;
                         }
-                        &Id::Bot(_) => {
+                        Id::Bot(_) => {
                             panic!("Using FromBin not from a Bin");
                         }
                     }
-                    match dest {
-                        &Id::Bot(id) => {
+                    match *dest {
+                        Id::Bot(id) => {
                             let bot = self.bots.get_mut(&id).unwrap();
                             bot.push(chip);
                         }
-                        &Id::Bin(id) => {
+                        Id::Bin(id) => {
                             let bin = self.bins.get_mut(&id).unwrap();
                             *bin = Some(chip);
                         }
                     }
                 }
             }
+
             FromBot(ref src, ref dest_low, ref dest_high) => {
                 let can_take;
                 let can_put_low;
                 let can_put_high;
 
-                can_take = match src {
-                    &Id::Bot(id) => {
+                can_take = match *src {
+                    Id::Bot(id) => {
                         let bot = self.bots.get(&id).unwrap();
                         bot.num_chips() >= 2
                     }
-                    &Id::Bin(_) => {
+                    Id::Bin(_) => {
                         panic!("Using FromBot not from a Bot");
                     }
                 };
                 if dest_low == dest_high {
-                    can_put_low = match dest_low {
-                        &Id::Bot(id) => {
+                    can_put_low = match *dest_low {
+                        Id::Bot(id) => {
                             let bot = self.bots.get(&id).unwrap();
-                            bot.num_chips() <= 0
+                            bot.num_chips() == 0
                         }
-                        &Id::Bin(_) => true,
+                        Id::Bin(_) => true,
                     };
                     can_put_high = can_put_low;
                 } else {
-                    can_put_low = match dest_low {
-                        &Id::Bot(id) => {
+                    can_put_low = match *dest_low {
+                        Id::Bot(id) => {
                             let bot = self.bots.get(&id).unwrap();
                             bot.num_chips() <= 1
                         }
-                        &Id::Bin(_) => true,
+                        Id::Bin(_) => true,
                     };
-                    can_put_high = match dest_high {
-                        &Id::Bot(id) => {
+                    can_put_high = match *dest_high {
+                        Id::Bot(id) => {
                             let bot = self.bots.get(&id).unwrap();
                             bot.num_chips() <= 1
                         }
-                        &Id::Bin(_) => true,
+                        Id::Bin(_) => true,
                     };
                 }
 
@@ -229,44 +230,44 @@ impl Factory {
                 if can_take && can_put_low && can_put_high {
                     let chips;
 
-                    match src {
-                        &Id::Bot(id) => {
+                    match *src {
+                        Id::Bot(id) => {
                             let bot = self.bots.get_mut(&id).unwrap();
                             chips = bot.chips;
                             bot.clear();
                         }
-                        &Id::Bin(_) => {
+                        Id::Bin(_) => {
                             panic!("Using FromBot not from a Bot");
                         }
                     }
-                    match dest_low {
-                        &Id::Bot(id) => {
+                    match *dest_low {
+                        Id::Bot(id) => {
                             let bot = self.bots.get_mut(&id).unwrap();
                             bot.push(chips.0.unwrap());
                         }
-                        &Id::Bin(id) => {
+                        Id::Bin(id) => {
                             let bin = self.bins.get_mut(&id).unwrap();
                             *bin = chips.0;
                         }
                     }
-                    match dest_high {
-                        &Id::Bot(id) => {
+                    match *dest_high {
+                        Id::Bot(id) => {
                             let bot = self.bots.get_mut(&id).unwrap();
                             bot.push(chips.1.unwrap());
                         }
-                        &Id::Bin(id) => {
+                        Id::Bin(id) => {
                             let bin = self.bins.get_mut(&id).unwrap();
                             *bin = chips.1;
                         }
                     }
                 } else {
                     // Clear src even if you can't place it? IDK why
-                    match src {
-                        &Id::Bot(id) => {
+                    match *src {
+                        Id::Bot(id) => {
                             let bot = self.bots.get_mut(&id).unwrap();
                             bot.clear();
                         }
-                        &Id::Bin(_) => {
+                        Id::Bin(_) => {
                             panic!("Using FromBot not from a Bot");
                         }
                     }
@@ -290,12 +291,9 @@ fn main() {
 
     'main: loop {
         factory.step();
-        match (factory.bins[&0], factory.bins[&1], factory.bins[&2]) {
-            (Some(a), Some(b), Some(c)) => {
-                println!("{}", a * b * c);
-                break 'main;
-            }
-            _ => { }
+        if let (Some(a), Some(b), Some(c)) = (factory.bins[&0], factory.bins[&1], factory.bins[&2]) {
+            println!("{}", a * b * c);
+            break 'main;
         }
     }
 }

@@ -32,10 +32,10 @@ fn main() {
         hasher.reset();
         i += 1;
 
-        for j in 0..8 {
-            print!("{}", pass[j].unwrap_or('_'));
+        for p in &pass {
+            print!("{}", p.unwrap_or('_'));
         }
         print!("\r");
     }
-    println!("");
+    println!();
 }

@@ -92,9 +92,9 @@ impl fmt::Display for Disp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in self.data.iter() {
             for i in row.iter() {
-                try!(write!(f, "{}", if *i {'#'} else {'.'}));
+                write!(f, "{}", if *i {'#'} else {'.'})?;
             }
-            try!(writeln!(f, ""));
+            writeln!(f, "")?;
         }
         Ok(())
     }
