@@ -1,18 +1,20 @@
-extern crate crypto;
-
 use crypto::digest::Digest;
 use crypto::md5::Md5;
 
 fn main() {
+    println!("{}", run(include_str!("input/day_05.txt")));
+}
+
+fn run(s: &str) -> String {
     let mut hasher = Md5::new();
-    let id = b"wtnhxymk";
+    let s = s.trim();
 
     let mut total = 0;
     let mut i = 0;
     let mut pass = String::new();
     while total < 8 {
         let mut hash = [0u8; 16];
-        hasher.input(id);
+        hasher.input(s.as_bytes());
         hasher.input(i.to_string().as_bytes());
         hasher.result(&mut hash);
 
@@ -29,5 +31,21 @@ fn main() {
         hasher.reset();
         i += 1;
     }
-    println!("{}", pass);
+
+    pass
+}
+
+mod test {
+    #[test]
+    fn day_05_01_test() {
+        assert_eq!(
+            super::run(include_str!("input/day_05_test.txt")),
+            "18F47A30"
+        );
+    }
+
+    #[test]
+    fn day_05_01() {
+        assert_eq!(super::run(include_str!("input/day_05.txt")), "F97C354D");
+    }
 }
