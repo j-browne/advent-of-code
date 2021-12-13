@@ -1,3 +1,4 @@
+pub mod arcade;
 pub mod asteroid_field;
 pub mod intcode;
 pub mod n_body;

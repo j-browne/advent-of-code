@@ -162,4 +162,14 @@ impl NBody {
         )
         .unwrap()
     }
+
+    #[must_use]
+    pub fn positions(&self) -> &Vec<Vector> {
+        &self.positions
+    }
+
+    #[must_use]
+    pub fn velocities(&self) -> &Vec<Vector> {
+        &self.velocities
+    }
 }
