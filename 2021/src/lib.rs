@@ -8,6 +8,7 @@ pub mod geothermal_vents;
 pub mod lanternfish;
 pub mod least_fuel;
 pub mod origami;
+pub mod polymer;
 pub mod seven_segment_display;
 pub mod submarine;
 pub mod vents;
