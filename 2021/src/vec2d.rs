@@ -3,6 +3,8 @@ use std::{
     ops::{Add, Index, IndexMut, Mul},
 };
 
+// TODO: should data be a Box<[u8]>?
+// TODO: should it be called something else? (Not really a Vec)
 #[derive(Debug, Clone)]
 pub struct Vec2d<T> {
     /// Dimensionality of the data
@@ -14,6 +16,7 @@ pub struct Vec2d<T> {
 impl<T> Vec2d<T> {
     #[must_use]
     pub fn new(dim: (usize, usize), data: Vec<T>) -> Self {
+        assert_eq!(data.len(), dim.0 * dim.1);
         Self { dim, data }
     }
 
