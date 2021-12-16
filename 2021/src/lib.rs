@@ -11,4 +11,7 @@ pub mod origami;
 pub mod polymer;
 pub mod seven_segment_display;
 pub mod submarine;
+pub mod vec2d;
 pub mod vents;
+
+pub use vec2d::Vec2d;

@@ -1,8 +1,9 @@
+// TODO: use Vec2d?
+use crate::Vec2d;
+
 #[derive(Debug)]
 pub struct DiagnosticReport {
-    /// Dimensionality of the data
-    dim: (usize, usize),
-    data: Vec<u32>,
+    data: Vec2d<u32>,
 }
 
 impl DiagnosticReport {
@@ -21,67 +22,63 @@ impl DiagnosticReport {
                 })
             })
             .collect();
+        let data = Vec2d::new(dim, data);
 
-        Self { dim, data }
+        Self { data }
     }
 
     #[must_use]
     pub fn gamma_rate(&self) -> u32 {
-        let most_common = (0..(self.dim.1)).rev().map(|i| self.most_common_at(i));
+        let dim = self.data.dim();
+        let most_common = (0..(dim.1)).rev().map(|i| self.most_common_at(i));
         bin_to_u32(most_common)
     }
 
     #[must_use]
     pub fn epsilon_rate(&self) -> u32 {
-        u32::pow(2, u32::try_from(self.dim.1).unwrap()) - 1 - self.gamma_rate()
+        let dim = self.data.dim();
+        u32::pow(2, u32::try_from(dim.1).unwrap()) - 1 - self.gamma_rate()
     }
 
     #[must_use]
     pub fn oxygen_generator_rating(&self) -> u32 {
-        let mut candidates = (0..self.dim.0).collect::<Vec<_>>();
-        for i in 0..self.dim.1 {
+        let dim = self.data.dim();
+        let mut candidates = (0..(dim.0)).collect::<Vec<_>>();
+        for x in 0..(dim.1) {
             if candidates.len() == 1 {
                 break;
             }
 
-            let most_common =
-                most_common(candidates.iter().map(|x| &self.data[x * self.dim.1 + i]));
-            candidates.retain(|x| self.data[x * self.dim.1 + i] == most_common);
+            let most_common = most_common(candidates.iter().map(|y| &self.data[(x, *y)]));
+            candidates.retain(|y| self.data[(x, *y)] == most_common);
         }
 
-        let idx = candidates[0];
-        bin_to_u32(
-            (0..(self.dim.1))
-                .rev()
-                .map(|i| self.data[idx * self.dim.1 + i]),
-        )
+        let y = candidates[0];
+        bin_to_u32((0..(dim.1)).rev().map(|x| self.data[(x, y)]))
     }
 
     #[must_use]
     pub fn co2_scrubber_rating(&self) -> u32 {
-        let mut candidates = (0..self.dim.0).collect::<Vec<_>>();
-        for i in 0..self.dim.1 {
+        let dim = self.data.dim();
+        let mut candidates = (0..(dim.0)).collect::<Vec<_>>();
+        for x in 0..(dim.1) {
             if candidates.len() == 1 {
                 break;
             }
 
-            let least_common =
-                least_common(candidates.iter().map(|x| &self.data[x * self.dim.1 + i]));
-            candidates.retain(|x| self.data[x * self.dim.1 + i] == least_common);
+            let least_common = least_common(candidates.iter().map(|y| &self.data[(x, *y)]));
+            candidates.retain(|y| self.data[(x, *y)] == least_common);
         }
 
-        let idx = candidates[0];
-        bin_to_u32(
-            (0..(self.dim.1))
-                .rev()
-                .map(|i| self.data[idx * self.dim.1 + i]),
-        )
+        let y = candidates[0];
+        bin_to_u32((0..(dim.1)).rev().map(|x| self.data[(x, y)]))
     }
 
     #[must_use]
     pub fn most_common_at(&self, i: usize) -> u32 {
-        assert!(i < self.dim.1);
-        most_common(self.data.iter().skip(i).step_by(self.dim.1))
+        let dim = self.data.dim();
+        assert!(i < dim.1);
+        most_common(self.data.iter().skip(i).step_by(dim.1))
     }
 
     #[must_use]
