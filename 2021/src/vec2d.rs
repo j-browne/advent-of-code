@@ -28,7 +28,7 @@ impl<T> Vec2d<T> {
     }
 
     #[inline]
-    pub fn idx<I>(&self, x: I, y: I) -> I
+    fn idx<I>(&self, x: I, y: I) -> I
     where
         I: Mul<Output = I> + Add<Output = I> + TryFrom<usize>,
         <I as TryFrom<usize>>::Error: Debug,
