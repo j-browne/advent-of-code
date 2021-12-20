@@ -13,6 +13,7 @@ pub mod origami;
 pub mod polymer;
 pub mod seven_segment_display;
 pub mod submarine;
+pub mod trick_shot;
 pub mod vec2d;
 pub mod vents;
 
