@@ -7,6 +7,7 @@ pub mod chunk;
 pub mod diagnostic_report;
 pub mod dumbo_octopus;
 pub mod geothermal_vents;
+pub mod image_enhancement;
 pub mod lanternfish;
 pub mod least_fuel;
 pub mod origami;

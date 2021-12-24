@@ -43,8 +43,18 @@ impl<T> Vec2d<T> {
         self.neighbor_indices(x, y).map(|(x, y)| &self[(x, y)])
     }
 
+    pub fn neighbors_isize(&self, x: isize, y: isize) -> impl Iterator<Item = &T> + '_ {
+        self.neighbor_indices_isize(x, y)
+            .map(|(x, y)| &self[(x, y)])
+    }
+
     pub fn neighbors_diag(&self, x: usize, y: usize) -> impl Iterator<Item = &T> + '_ {
         self.neighbor_diag_indices(x, y).map(|(x, y)| &self[(x, y)])
+    }
+
+    pub fn neighbors_diag_isize(&self, x: isize, y: isize) -> impl Iterator<Item = &T> + '_ {
+        self.neighbor_diag_indices_isize(x, y)
+            .map(|(x, y)| &self[(x, y)])
     }
 
     pub fn neighbor_indices(
@@ -64,6 +74,26 @@ impl<T> Vec2d<T> {
             }
         })
     }
+
+    pub fn neighbor_indices_isize(
+        &self,
+        x: isize,
+        y: isize,
+    ) -> impl Iterator<Item = (usize, usize)> + '_ {
+        let diffs = [(-1isize, 0isize), (0, -1), (0, 1), (1, 0)];
+        diffs.into_iter().filter_map(move |(dx, dy)| {
+            if x + dx >= 0
+                && x + dx < self.dim.1.try_into().unwrap()
+                && y + dy >= 0
+                && y + dy < self.dim.0.try_into().unwrap()
+            {
+                Some(((x + dx).try_into().unwrap(), (y + dy).try_into().unwrap()))
+            } else {
+                None
+            }
+        })
+    }
+
     pub fn neighbor_diag_indices(
         &self,
         x: usize,
@@ -87,6 +117,34 @@ impl<T> Vec2d<T> {
                 (Ok(new_x), Ok(new_y)) if new_x >= self.dim.1 || new_y >= self.dim.0 => None,
                 (Ok(new_x), Ok(new_y)) => Some((new_x, new_y)),
                 _ => None,
+            }
+        })
+    }
+
+    pub fn neighbor_diag_indices_isize(
+        &self,
+        x: isize,
+        y: isize,
+    ) -> impl Iterator<Item = (usize, usize)> + '_ {
+        let diffs = [
+            (-1isize, -1isize),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ];
+        diffs.into_iter().filter_map(move |(dx, dy)| {
+            if x + dx >= 0
+                && x + dx < self.dim.1.try_into().unwrap()
+                && y + dy >= 0
+                && y + dy < self.dim.0.try_into().unwrap()
+            {
+                Some(((x + dx).try_into().unwrap(), (y + dy).try_into().unwrap()))
+            } else {
+                None
             }
         })
     }
