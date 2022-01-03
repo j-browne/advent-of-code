@@ -5,6 +5,7 @@ pub mod cave;
 pub mod chiton_cave;
 pub mod chunk;
 pub mod diagnostic_report;
+pub mod dirac_dice;
 pub mod dumbo_octopus;
 pub mod geothermal_vents;
 pub mod image_enhancement;
