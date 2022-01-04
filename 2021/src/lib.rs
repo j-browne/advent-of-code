@@ -13,6 +13,7 @@ pub mod lanternfish;
 pub mod least_fuel;
 pub mod origami;
 pub mod polymer;
+pub mod reactor;
 pub mod seven_segment_display;
 pub mod snailfish;
 pub mod submarine;
