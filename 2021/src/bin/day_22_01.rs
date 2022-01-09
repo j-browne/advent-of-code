@@ -4,9 +4,9 @@ fn main() {
     println!("{}", run(include_str!("input/day_22.txt")));
 }
 
-fn run(input: &str) -> usize {
+fn run(input: &str) -> i64 {
     let reactor = Reactor::new(input);
-    reactor.num_on()
+    reactor.num_on_init()
 }
 
 mod test {
