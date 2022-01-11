@@ -4,9 +4,9 @@ fn main() {
     println!("{}", run(include_str!("input/day_24.txt")));
 }
 
-fn run(input: &str) -> u32 {
-    let _monad = Monad::new(input);
-    todo!()
+fn run(input: &str) -> u64 {
+    let monad = Monad::new(input);
+    monad.largest_valid_model_number()
 }
 
 mod test {
