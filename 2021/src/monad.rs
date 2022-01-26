@@ -1,5 +1,8 @@
-//TODO: Memoize
-use std::ops::{Index, IndexMut};
+use std::{
+    cmp::max,
+    collections::{hash_map::Entry, HashMap},
+    ops::{Index, IndexMut},
+};
 
 #[derive(Debug, Clone)]
 pub struct Monad {
@@ -14,38 +17,57 @@ impl Monad {
         Self { instructions }
     }
 
-    fn is_model_number_valid(&self, model_number: &[i64; 14]) -> bool {
-        self.run(model_number).z == 0
-    }
-
     #[must_use]
-    pub fn largest_valid_model_number(&self) -> u64 {
-        let model_nums = ModelNumberRevIter::<14>::new();
-        for m in model_nums {
-            if self.is_model_number_valid(&m) {
-                return m
-                    .iter()
-                    .rev()
-                    .fold(0, |s, x| 10 * s + u64::try_from(*x).unwrap());
+    pub fn largest_valid_model_number(&self) -> i64 {
+        let mut states = HashMap::new();
+        states.insert(MonadState::new(), 0);
+        let mut old_states = HashMap::new();
+
+        for (step_no, i) in self.instructions.iter().enumerate() {
+            std::mem::swap(&mut states, &mut old_states);
+            println!("{} {}", step_no, old_states.len());
+
+            for (mut s, input) in old_states.drain() {
+                if let Instruction::Inp(reg) = i {
+                    for x in 1..=9 {
+                        let mut new_state = s.clone();
+                        let mut new_input = input;
+                        new_state[*reg] = x;
+                        new_input = new_input * 10 + x;
+                        states.insert(new_state, new_input);
+                    }
+                } else {
+                    self.step(i, &mut (&[] as &[i64]), &mut s);
+                    match states.entry(s) {
+                        Entry::Vacant(v) => {
+                            v.insert(input);
+                        }
+                        Entry::Occupied(mut o) => {
+                            let old_input = *o.get();
+                            o.insert(max(old_input, input));
+                        }
+                    }
+                }
             }
         }
 
-        panic!("no valid model number found")
+        states
+            .into_iter()
+            .filter_map(|(k, v)| if k.z == 0 { Some(v) } else { None })
+            .max()
+            .unwrap()
     }
 
-    fn run(&self, mut input: &[i64]) -> MonadState {
+    pub fn run(&self, mut input: &[i64]) -> MonadState {
         let mut state = MonadState::new();
-
         for i in &self.instructions {
             self.step(i, &mut input, &mut state);
         }
-
         state
     }
 
     fn step(&self, i: &Instruction, input: &mut &[i64], state: &mut MonadState) {
         use Instruction::{AddN, AddR, DivN, DivR, EqlN, EqlR, Inp, ModN, ModR, MulN, MulR};
-        state.inst_idx += 1;
 
         match *i {
             Inp(reg) => {
@@ -66,13 +88,12 @@ impl Monad {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-struct MonadState {
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+pub struct MonadState {
     w: i64,
     x: i64,
     y: i64,
     z: i64,
-    inst_idx: usize,
 }
 
 impl MonadState {

@@ -4,7 +4,7 @@ fn main() {
     println!("{}", run(include_str!("input/day_24.txt")));
 }
 
-fn run(input: &str) -> u64 {
+fn run(input: &str) -> i64 {
     let monad = Monad::new(input);
     monad.largest_valid_model_number()
 }
