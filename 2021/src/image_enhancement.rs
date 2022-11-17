@@ -96,7 +96,7 @@ impl Image {
 fn bits_to_idx(bits: &[bool]) -> usize {
     bits.iter()
         .enumerate()
-        .map(|(i, x)| if *x { 1 } else { 0 } << (8 - i))
+        .map(|(i, x)| usize::from(*x) << (8 - i))
         .sum()
 }
 

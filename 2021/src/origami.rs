@@ -66,7 +66,7 @@ impl Grid {
     }
 
     #[must_use]
-    pub fn dots(&self) -> &HashSet<(i32, i32)> {
+    pub const fn dots(&self) -> &HashSet<(i32, i32)> {
         &self.dots
     }
 }
@@ -105,7 +105,7 @@ impl Fold {
         match dir {
             "x" => Self::X(amt),
             "y" => Self::Y(amt),
-            _ => panic!("unknown fold direction `{}`", dir),
+            _ => panic!("unknown fold direction `{dir}`"),
         }
     }
 }

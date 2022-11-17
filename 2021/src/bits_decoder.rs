@@ -58,7 +58,7 @@ impl Packet {
                     let mut subs = Vec::new();
 
                     while !bits.is_empty() {
-                        let (sub, n) = Packet::from_bits(bits);
+                        let (sub, n) = Self::from_bits(bits);
                         subs.push(sub);
                         bits = &bits[n..];
                         read += n;
@@ -73,7 +73,7 @@ impl Packet {
                     let mut subs = Vec::new();
 
                     for _ in 0..num_subs {
-                        let (sub, n) = Packet::from_bits(bits);
+                        let (sub, n) = Self::from_bits(bits);
                         subs.push(sub);
                         bits = &bits[n..];
                         read += n;
@@ -107,27 +107,9 @@ impl Packet {
                 1 => subs.iter().map(Self::value).product(),
                 2 => subs.iter().map(Self::value).min().unwrap(),
                 3 => subs.iter().map(Self::value).max().unwrap(),
-                5 => {
-                    if subs[0].value() > subs[1].value() {
-                        1
-                    } else {
-                        0
-                    }
-                }
-                6 => {
-                    if subs[0].value() < subs[1].value() {
-                        1
-                    } else {
-                        0
-                    }
-                }
-                7 => {
-                    if subs[0].value() == subs[1].value() {
-                        1
-                    } else {
-                        0
-                    }
-                }
+                5 => u64::from(subs[0].value() > subs[1].value()),
+                6 => u64::from(subs[0].value() < subs[1].value()),
+                7 => u64::from(subs[0].value() == subs[1].value()),
                 _ => unreachable!(),
             },
         }

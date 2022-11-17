@@ -21,12 +21,12 @@ impl<T> Vec2d<T> {
     }
 
     #[must_use]
-    pub fn dim(&self) -> (usize, usize) {
+    pub const fn dim(&self) -> (usize, usize) {
         self.dim
     }
 
     #[must_use]
-    pub fn data(&self) -> &Vec<T> {
+    pub const fn data(&self) -> &Vec<T> {
         &self.data
     }
 

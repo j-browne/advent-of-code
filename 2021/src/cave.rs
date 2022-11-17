@@ -92,17 +92,17 @@ impl Cave {
         } else if s.chars().all(char::is_lowercase) {
             Self::Small(s.to_string())
         } else {
-            panic!("invalid cave name `{}`", s)
+            panic!("invalid cave name `{s}`")
         }
     }
 
     #[must_use]
-    pub fn is_big(&self) -> bool {
+    pub const fn is_big(&self) -> bool {
         matches!(self, Self::Big(_))
     }
 
     #[must_use]
-    pub fn is_small(&self) -> bool {
+    pub const fn is_small(&self) -> bool {
         matches!(self, Self::Small(_))
     }
 

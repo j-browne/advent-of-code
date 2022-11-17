@@ -51,8 +51,8 @@ impl Line {
     }
 
     fn iter(self) -> impl Iterator<Item = Pos> {
-        let mut dx = (self.1).0 as i32 - (self.0).0 as i32;
-        let mut dy = (self.1).1 as i32 - (self.0).1 as i32;
+        let mut dx = (self.1).0 - (self.0).0;
+        let mut dy = (self.1).1 - (self.0).1;
         let steps = i32::max(dx.abs(), dy.abs());
         if steps != 0 {
             dx /= steps;

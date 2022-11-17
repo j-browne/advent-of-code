@@ -5,7 +5,7 @@ pub struct Chunk<'a> {
 
 impl<'a> Chunk<'a> {
     #[must_use]
-    pub fn new(s: &'a str) -> Self {
+    pub const fn new(s: &'a str) -> Self {
         Self { data: s }
     }
 
@@ -34,7 +34,7 @@ impl<'a> Chunk<'a> {
                         return Err(25137);
                     }
                 }
-                _ => panic!("bad character `{}`", c),
+                _ => panic!("bad character `{c}`"),
             }
         }
 
@@ -46,7 +46,7 @@ impl<'a> Chunk<'a> {
                 '[' => 2,
                 '{' => 3,
                 '<' => 4,
-                _ => panic!("bad character `{}`", c),
+                _ => panic!("bad character `{c}`"),
             }
         }
 

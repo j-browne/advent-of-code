@@ -15,7 +15,7 @@ impl Reactor {
             let state = match it.next().unwrap() {
                 "on" => true,
                 "off" => false,
-                x => panic!("unknown state `{}`", x),
+                x => panic!("unknown state `{x}`"),
             };
 
             let mut it = it.next().unwrap().split(',');
@@ -29,6 +29,7 @@ impl Reactor {
             // whether turning cube on or off, add the difference of each
             // existing cube and the new cube (order matters!) to cubes.
             // If turning on, add cube when done.
+            #[allow(clippy::iter_with_drain)]
             for c in old_cubes.drain(..) {
                 cubes.add_diff(&c, &cube);
             }
@@ -74,7 +75,7 @@ struct Cube {
 }
 
 impl Cube {
-    fn size(&self) -> i64 {
+    const fn size(&self) -> i64 {
         (self.lim[0].1 - self.lim[0].0 + 1)
             * (self.lim[1].1 - self.lim[1].0 + 1)
             * (self.lim[2].1 - self.lim[2].0 + 1)
@@ -82,6 +83,7 @@ impl Cube {
 
     fn overlaps(&self, other: &Self) -> [Overlap; 3] {
         // TODO: use array instead of Vec?
+        #[allow(clippy::suspicious_operation_groupings)]
         Iterator::zip(self.lim.iter(), other.lim.iter())
             .map(|(a, b)| {
                 if (b.0 < a.0 && b.1 < a.0) || (b.0 > a.1 && b.1 > a.1) {

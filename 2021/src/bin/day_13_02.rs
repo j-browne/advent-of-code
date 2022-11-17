@@ -7,7 +7,7 @@ fn main() {
 fn run(input: &str) -> String {
     let mut grid = Grid::new(input);
     grid.fold();
-    format!("{}", grid)
+    format!("{grid}")
 }
 
 mod test {

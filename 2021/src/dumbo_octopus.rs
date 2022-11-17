@@ -10,7 +10,6 @@ impl Grid {
     #[must_use]
     pub fn new(s: &str) -> Self {
         let data = s
-            .trim()
             .split_whitespace()
             .flat_map(|l| {
                 l.bytes().map(|c| {
@@ -57,7 +56,7 @@ impl Grid {
     }
 
     #[must_use]
-    pub fn flashes(&self) -> u32 {
+    pub const fn flashes(&self) -> u32 {
         self.flashes
     }
 }

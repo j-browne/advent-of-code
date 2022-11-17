@@ -38,6 +38,6 @@ impl Population {
 
     #[must_use]
     pub fn total(&self) -> u128 {
-        self.ages.iter().map(|(_, n)| n).sum()
+        self.ages.values().sum()
     }
 }

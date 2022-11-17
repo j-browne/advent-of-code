@@ -136,7 +136,7 @@ impl Signals {
     }
 
     #[must_use]
-    pub fn contains(&self, c: char) -> bool {
+    pub const fn contains(&self, c: char) -> bool {
         let idx = c as usize - 'a' as usize;
         self.0[idx]
     }

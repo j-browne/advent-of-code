@@ -45,12 +45,12 @@ impl DeterministicGame {
     }
 
     #[must_use]
-    pub fn scores(&self) -> &Vec<u32> {
+    pub const fn scores(&self) -> &Vec<u32> {
         &self.scores
     }
 
     #[must_use]
-    pub fn num_rolls(&self) -> u32 {
+    pub const fn num_rolls(&self) -> u32 {
         self.num_rolls
     }
 }
@@ -64,7 +64,7 @@ impl DeterministicDie {
     const SIDES: u32 = 100;
 
     #[must_use]
-    fn new(start: u32) -> Self {
+    const fn new(start: u32) -> Self {
         Self { curr: start }
     }
 }

@@ -8,8 +8,8 @@ fn run(input: &str) -> u128 {
     let mut poly = Polymer::new(input);
     poly.insert_n(10);
     let counts = poly.counts();
-    let max = counts.iter().map(|(_, x)| x).max().unwrap();
-    let min = counts.iter().map(|(_, x)| x).min().unwrap();
+    let max = counts.values().max().unwrap();
+    let min = counts.values().min().unwrap();
     max - min
 }
 

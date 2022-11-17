@@ -20,12 +20,12 @@ impl Monad {
     #[must_use]
     pub fn largest_valid_model_number(&self) -> i64 {
         let mut states = HashMap::new();
-        states.insert(MonadState::new(), 0);
+        states.insert(State::new(), 0);
         let mut old_states = HashMap::new();
 
         for (step_no, i) in self.instructions.iter().enumerate() {
             std::mem::swap(&mut states, &mut old_states);
-            println!("{} {}", step_no, old_states.len());
+            println!("{step_no} {}", old_states.len());
 
             for (mut s, input) in old_states.drain() {
                 if let Instruction::Inp(reg) = i {
@@ -37,7 +37,7 @@ impl Monad {
                         states.insert(new_state, new_input);
                     }
                 } else {
-                    self.step(i, &mut (&[] as &[i64]), &mut s);
+                    step(i, &mut (&[] as &[i64]), &mut s);
                     match states.entry(s) {
                         Entry::Vacant(v) => {
                             v.insert(input);
@@ -58,45 +58,46 @@ impl Monad {
             .unwrap()
     }
 
-    pub fn run(&self, mut input: &[i64]) -> MonadState {
-        let mut state = MonadState::new();
+    #[must_use]
+    pub fn run(&self, mut input: &[i64]) -> State {
+        let mut state = State::new();
         for i in &self.instructions {
-            self.step(i, &mut input, &mut state);
+            step(i, &mut input, &mut state);
         }
         state
     }
+}
 
-    fn step(&self, i: &Instruction, input: &mut &[i64], state: &mut MonadState) {
-        use Instruction::{AddN, AddR, DivN, DivR, EqlN, EqlR, Inp, ModN, ModR, MulN, MulR};
+fn step(i: &Instruction, input: &mut &[i64], state: &mut State) {
+    use Instruction::{AddN, AddR, DivN, DivR, EqlN, EqlR, Inp, ModN, ModR, MulN, MulR};
 
-        match *i {
-            Inp(reg) => {
-                state[reg] = input[0];
-                *input = &input[1..];
-            }
-            AddN(reg, num) => state[reg] += num,
-            MulN(reg, num) => state[reg] *= num,
-            DivN(reg, num) => state[reg] /= num,
-            ModN(reg, num) => state[reg] %= num,
-            EqlN(reg, num) => state[reg] = if state[reg] == num { 1 } else { 0 },
-            AddR(reg1, reg2) => state[reg1] += state[reg2],
-            MulR(reg1, reg2) => state[reg1] *= state[reg2],
-            DivR(reg1, reg2) => state[reg1] /= state[reg2],
-            ModR(reg1, reg2) => state[reg1] %= state[reg2],
-            EqlR(reg1, reg2) => state[reg1] = if state[reg1] == state[reg2] { 1 } else { 0 },
+    match *i {
+        Inp(reg) => {
+            state[reg] = input[0];
+            *input = &input[1..];
         }
+        AddN(reg, num) => state[reg] += num,
+        MulN(reg, num) => state[reg] *= num,
+        DivN(reg, num) => state[reg] /= num,
+        ModN(reg, num) => state[reg] %= num,
+        EqlN(reg, num) => state[reg] = i64::from(state[reg] == num),
+        AddR(reg1, reg2) => state[reg1] += state[reg2],
+        MulR(reg1, reg2) => state[reg1] *= state[reg2],
+        DivR(reg1, reg2) => state[reg1] /= state[reg2],
+        ModR(reg1, reg2) => state[reg1] %= state[reg2],
+        EqlR(reg1, reg2) => state[reg1] = i64::from(state[reg1] == state[reg2]),
     }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
-pub struct MonadState {
+pub struct State {
     w: i64,
     x: i64,
     y: i64,
     z: i64,
 }
 
-impl MonadState {
+impl State {
     #[must_use]
     fn new() -> Self {
         Self::default()
@@ -111,7 +112,7 @@ impl MonadState {
     }
 }
 
-impl Index<Register> for MonadState {
+impl Index<Register> for State {
     type Output = i64;
 
     fn index(&self, r: Register) -> &Self::Output {
@@ -124,7 +125,7 @@ impl Index<Register> for MonadState {
     }
 }
 
-impl IndexMut<Register> for MonadState {
+impl IndexMut<Register> for State {
     fn index_mut(&mut self, r: Register) -> &mut Self::Output {
         match r {
             Register::W => &mut self.w,
@@ -153,7 +154,7 @@ enum Instruction {
 impl Instruction {
     #[must_use]
     pub fn new(s: &str) -> Self {
-        let mut it = s.trim().split_whitespace();
+        let mut it = s.split_whitespace();
 
         let inst = it.next().unwrap();
         let reg1 = Register::new(it.next().unwrap());
@@ -163,26 +164,27 @@ impl Instruction {
         }
 
         let arg2 = it.next().unwrap();
-        if let Ok(num) = arg2.parse::<i64>() {
-            match inst {
+        arg2.parse::<i64>().map_or_else(
+            |_| {
+                let reg2 = Register::new(arg2);
+                match inst {
+                    "add" => Self::AddR(reg1, reg2),
+                    "mul" => Self::MulR(reg1, reg2),
+                    "div" => Self::DivR(reg1, reg2),
+                    "mod" => Self::ModR(reg1, reg2),
+                    "eql" => Self::EqlR(reg1, reg2),
+                    x => panic!("unknown instruction `{x}`"),
+                }
+            },
+            |num| match inst {
                 "add" => Self::AddN(reg1, num),
                 "mul" => Self::MulN(reg1, num),
                 "div" => Self::DivN(reg1, num),
                 "mod" => Self::ModN(reg1, num),
                 "eql" => Self::EqlN(reg1, num),
-                x => panic!("unknown instruction `{}`", x),
-            }
-        } else {
-            let reg2 = Register::new(arg2);
-            match inst {
-                "add" => Self::AddR(reg1, reg2),
-                "mul" => Self::MulR(reg1, reg2),
-                "div" => Self::DivR(reg1, reg2),
-                "mod" => Self::ModR(reg1, reg2),
-                "eql" => Self::EqlR(reg1, reg2),
-                x => panic!("unknown instruction `{}`", x),
-            }
-        }
+                x => panic!("unknown instruction `{x}`"),
+            },
+        )
     }
 }
 
@@ -202,7 +204,7 @@ impl Register {
             "x" => Self::X,
             "y" => Self::Y,
             "z" => Self::Z,
-            x => panic!("unknown register `{}`", x),
+            x => panic!("unknown register `{x}`"),
         }
     }
 }
@@ -213,7 +215,7 @@ struct ModelNumberIter<const N: usize> {
 }
 
 impl<const N: usize> ModelNumberIter<N> {
-    fn new() -> Self {
+    const fn new() -> Self {
         let mut digits = [1; N];
         digits[0] -= 1;
 
@@ -258,7 +260,7 @@ struct ModelNumberRevIter<const N: usize> {
 }
 
 impl<const N: usize> ModelNumberRevIter<N> {
-    fn new() -> Self {
+    const fn new() -> Self {
         let mut digits = [9; N];
         digits[0] += 1;
 
@@ -327,7 +329,7 @@ mod test {
         for i in -10..10 {
             let input = [i, i];
             let state = monad.run(&input);
-            assert_eq!(state.z, if i == 0 { 1 } else { 0 });
+            assert_eq!(state.z, i64::from(i == 0));
         }
     }
 

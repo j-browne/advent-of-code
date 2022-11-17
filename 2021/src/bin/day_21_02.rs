@@ -7,7 +7,7 @@ fn main() {
 fn run(input: &str) -> u64 {
     let mut game = DiracGame::new(input);
     let mut wins = game.play();
-    eprintln!("{:?}", wins);
+    eprintln!("{wins:?}");
     wins.sort_unstable();
     *wins.last().unwrap()
 }
