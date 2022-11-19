@@ -15,7 +15,7 @@ fn day06_2(input: impl BufRead) -> u32 {
         })
         .collect();
 
-    orbits.dist(&"YOU", &"SAN").unwrap()
+    orbits.dist("YOU", "SAN").unwrap()
 }
 
 #[cfg(test)]

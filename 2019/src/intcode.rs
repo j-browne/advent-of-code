@@ -177,21 +177,19 @@ impl Machine {
 
     #[must_use]
     fn get(&self, input: i64, mode: ParameterMode) -> i64 {
-        use ParameterMode::*;
         match mode {
-            Position => self.get_memory(input),
-            Immediate => input,
-            Relative => self.get_memory(self.relative_base + input),
+            ParameterMode::Position => self.get_memory(input),
+            ParameterMode::Immediate => input,
+            ParameterMode::Relative => self.get_memory(self.relative_base + input),
         }
     }
 
     #[must_use]
     fn get_mut(&mut self, input: i64, mode: ParameterMode) -> &mut i64 {
-        use ParameterMode::*;
         match mode {
-            Position => self.get_memory_mut(input),
-            Immediate => panic!("trying to write in Immediate Mode"),
-            Relative => self.get_memory_mut(self.relative_base + input),
+            ParameterMode::Position => self.get_memory_mut(input),
+            ParameterMode::Immediate => panic!("trying to write in Immediate Mode"),
+            ParameterMode::Relative => self.get_memory_mut(self.relative_base + input),
         }
     }
 
@@ -260,14 +258,14 @@ impl Machine {
                 let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
                 let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
                 let val_2 = self.get_mut(self.get_memory(self.cursor + 3), mode_2);
-                *val_2 = if val_0 < val_1 { 1 } else { 0 };
+                *val_2 = i64::from(val_0 < val_1);
                 self.cursor += 4;
             }
             Instruction::EqualTo(mode_0, mode_1, mode_2) => {
                 let val_0 = self.get(self.get_memory(self.cursor + 1), mode_0);
                 let val_1 = self.get(self.get_memory(self.cursor + 2), mode_1);
                 let val_2 = self.get_mut(self.get_memory(self.cursor + 3), mode_2);
-                *val_2 = if val_0 == val_1 { 1 } else { 0 };
+                *val_2 = i64::from(val_0 == val_1);
                 self.cursor += 4;
             }
             Instruction::AdjustRelativeBase(mode) => {

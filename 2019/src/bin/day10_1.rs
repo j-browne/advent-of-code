@@ -1,4 +1,3 @@
-#![feature(bool_to_option)]
 use aoc_2019::asteroid_field::SpaceObject;
 use ordered_float::OrderedFloat;
 use std::{

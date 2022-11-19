@@ -23,13 +23,12 @@ pub enum Tile {
 impl TryFrom<i64> for Tile {
     type Error = Error;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
-        use Tile::*;
         match value {
-            0 => Ok(Empty),
-            1 => Ok(Wall),
-            2 => Ok(Block),
-            3 => Ok(Paddle),
-            4 => Ok(Ball),
+            0 => Ok(Self::Empty),
+            1 => Ok(Self::Wall),
+            2 => Ok(Self::Block),
+            3 => Ok(Self::Paddle),
+            4 => Ok(Self::Ball),
             _ => Err(Self::Error::UnknownTile),
         }
     }
@@ -37,13 +36,12 @@ impl TryFrom<i64> for Tile {
 
 impl Display for Tile {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        use Tile::*;
         match self {
-            Empty => write!(f, " ")?,
-            Wall => write!(f, "\u{2588}")?,
-            Block => write!(f, "\u{2592}")?,
-            Paddle => write!(f, "\u{2594}")?,
-            Ball => write!(f, "\u{25CF}")?,
+            Self::Empty => write!(f, " ")?,
+            Self::Wall => write!(f, "\u{2588}")?,
+            Self::Block => write!(f, "\u{2592}")?,
+            Self::Paddle => write!(f, "\u{2594}")?,
+            Self::Ball => write!(f, "\u{25CF}")?,
         }
         Ok(())
     }
@@ -83,16 +81,17 @@ impl Arcade {
             if d[0] == -1 && d[1] == 0 {
                 score = Some(d[2]);
             } else {
-                self.tiles.insert((d[0], d[1]), Tile::try_from(d[2]).unwrap());
+                self.tiles
+                    .insert((d[0], d[1]), Tile::try_from(d[2]).unwrap());
             }
         }
 
         let mut output = String::new();
 
-        let x_min = self.tiles.iter().map(|(x, _)| x.0).min().unwrap_or(0);
-        let y_min = self.tiles.iter().map(|(x, _)| x.1).min().unwrap_or(0);
-        let x_max = self.tiles.iter().map(|(x, _)| x.0).max().unwrap_or(0);
-        let y_max = self.tiles.iter().map(|(x, _)| x.1).max().unwrap_or(0);
+        let x_min = self.tiles.keys().map(|x| x.0).min().unwrap_or(0);
+        let y_min = self.tiles.keys().map(|x| x.1).min().unwrap_or(0);
+        let x_max = self.tiles.keys().map(|x| x.0).max().unwrap_or(0);
+        let y_max = self.tiles.keys().map(|x| x.1).max().unwrap_or(0);
 
         output.push('╔');
         for _ in x_min..=x_max {
@@ -104,7 +103,8 @@ impl Arcade {
         for y in y_min..=y_max {
             output.push('║');
             for x in x_min..=x_max {
-                output.extend(format!("{}", self.tiles.get(&(x, y)).unwrap_or(&Tile::Empty)).chars());
+                output
+                    .extend(format!("{}", self.tiles.get(&(x, y)).unwrap_or(&Tile::Empty)).chars());
             }
             output.push('║');
             output.push('\n');

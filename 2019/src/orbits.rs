@@ -30,7 +30,7 @@ impl Orbits {
     pub fn dist(&self, src: &str, dest: &str) -> Option<u32> {
         let mut to_search = VecDeque::<(u32, &str)>::new();
         let mut visited = HashSet::<&str>::new();
-        to_search.push_back((0, &src));
+        to_search.push_back((0, src));
 
         while !to_search.is_empty() {
             let (distance, node) = to_search.pop_front().unwrap();
@@ -67,6 +67,6 @@ impl FromIterator<(String, String)> for Orbits {
                 panic!("an object is orbiting multiple objects");
             }
         }
-        Orbits { map }
+        Self { map }
     }
 }

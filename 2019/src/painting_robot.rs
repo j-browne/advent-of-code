@@ -22,14 +22,14 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn rotate(self, rotation: Rotation) -> Self {
+    const fn rotate(self, rotation: Rotation) -> Self {
         match rotation {
             Rotation::Left => self.rotate_left(),
             Rotation::Right => self.rotate_right(),
         }
     }
 
-    fn rotate_left(self) -> Self {
+    const fn rotate_left(self) -> Self {
         match self {
             Self::Up => Self::Left,
             Self::Right => Self::Up,
@@ -38,7 +38,7 @@ impl Direction {
         }
     }
 
-    fn rotate_right(self) -> Self {
+    const fn rotate_right(self) -> Self {
         match self {
             Self::Up => Self::Right,
             Self::Right => Self::Down,
@@ -131,10 +131,10 @@ impl Robot {
     pub fn painted_image(&self) -> String {
         let mut output = String::new();
 
-        let x_min = self.painted_tiles.iter().map(|(x, _)| x.x).min().unwrap();
-        let y_min = self.painted_tiles.iter().map(|(x, _)| x.y).min().unwrap();
-        let x_max = self.painted_tiles.iter().map(|(x, _)| x.x).max().unwrap();
-        let y_max = self.painted_tiles.iter().map(|(x, _)| x.y).max().unwrap();
+        let x_min = self.painted_tiles.keys().map(|x| x.x).min().unwrap();
+        let y_min = self.painted_tiles.keys().map(|x| x.y).min().unwrap();
+        let x_max = self.painted_tiles.keys().map(|x| x.x).max().unwrap();
+        let y_max = self.painted_tiles.keys().map(|x| x.y).max().unwrap();
 
         output.push('╔');
         for _ in x_min..=x_max {

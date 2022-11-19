@@ -44,57 +44,51 @@ impl TryFrom<&str> for Direction {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Position(i32, i32);
 
-#[allow(clippy::suspicious_arithmetic_impl)]
 impl<Rhs: Borrow<Move>> Add<Rhs> for &mut Position {
     type Output = Position;
 
     fn add(self, rhs: Rhs) -> Self::Output {
-        use Direction::*;
         let rhs = rhs.borrow();
 
         let mut out = self;
         match rhs.direction {
-            Up => out.1 += rhs.distance,
-            Right => out.0 += rhs.distance,
-            Down => out.1 -= rhs.distance,
-            Left => out.0 -= rhs.distance,
+            Direction::Up => out.1 += rhs.distance,
+            Direction::Right => out.0 += rhs.distance,
+            Direction::Down => out.1 -= rhs.distance,
+            Direction::Left => out.0 -= rhs.distance,
         };
 
         *out
     }
 }
 
-#[allow(clippy::suspicious_arithmetic_impl)]
 impl<Rhs: AsRef<Move>> Add<Rhs> for &Position {
     type Output = Position;
 
     fn add(self, rhs: Rhs) -> Self::Output {
-        use Direction::*;
         let rhs = rhs.as_ref();
 
         match rhs.direction {
-            Up => self.1 + rhs.distance,
-            Right => self.0 + rhs.distance,
-            Down => self.1 - rhs.distance,
-            Left => self.0 - rhs.distance,
+            Direction::Up => self.1 + rhs.distance,
+            Direction::Right => self.0 + rhs.distance,
+            Direction::Down => self.1 - rhs.distance,
+            Direction::Left => self.0 - rhs.distance,
         };
         *self
     }
 }
 
-#[allow(clippy::suspicious_arithmetic_impl)]
 impl<Rhs: AsRef<Move>> Add<Rhs> for Position {
-    type Output = Position;
+    type Output = Self;
 
     fn add(self, rhs: Rhs) -> Self::Output {
-        use Direction::*;
         let rhs = rhs.as_ref();
 
         match rhs.direction {
-            Up => self.1 + rhs.distance,
-            Right => self.0 + rhs.distance,
-            Down => self.1 - rhs.distance,
-            Left => self.0 - rhs.distance,
+            Direction::Up => self.1 + rhs.distance,
+            Direction::Right => self.0 + rhs.distance,
+            Direction::Down => self.1 - rhs.distance,
+            Direction::Left => self.0 - rhs.distance,
         };
         self
     }
@@ -111,7 +105,7 @@ impl TryFrom<&str> for Move {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let direction = Direction::try_from(&value[..=0])?;
         let distance = value[1..].parse()?;
-        Ok(Move {
+        Ok(Self {
             direction,
             distance,
         })

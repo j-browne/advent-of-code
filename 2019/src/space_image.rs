@@ -35,7 +35,7 @@ impl SpaceImage {
 
     #[must_use]
     pub fn render(self) -> RenderedImage {
-        let SpaceImage {
+        let Self {
             width,
             height,
             data,
@@ -47,7 +47,7 @@ impl SpaceImage {
                 if image[i] == 2 {
                     image[i] = *pixel;
                 }
-            })
+            });
         });
 
         RenderedImage {
@@ -76,10 +76,11 @@ impl Display for RenderedImage {
         for i in 0..self.height {
             write!(f, "\u{2551}")?;
             for j in 0..self.width {
-                match self.data[self.width * i + j] {
-                    0 => write!(f, "\u{2588}")?,
-                    1 => write!(f, " ")?,
-                    _ => write!(f, "\u{2591}")?,
+                match self.data.get(self.width * i + j) {
+                    Some(0) => write!(f, "\u{2588}")?,
+                    Some(1) => write!(f, " ")?,
+                    Some(_) => write!(f, "\u{2591}")?,
+                    _ => Err(fmt::Error)?,
                 };
             }
             writeln!(f, "\u{2551}")?;

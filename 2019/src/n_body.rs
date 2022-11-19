@@ -12,22 +12,22 @@ pub struct Vector {
 
 impl Vector {
     #[must_use]
-    pub fn new(x: i32, y: i32, z: i32) -> Self {
+    pub const fn new(x: i32, y: i32, z: i32) -> Self {
         Self { data: [x, y, z] }
     }
 
     #[must_use]
-    pub fn x(&self) -> i32 {
+    pub const fn x(&self) -> i32 {
         self.data[0]
     }
 
     #[must_use]
-    pub fn y(&self) -> i32 {
+    pub const fn y(&self) -> i32 {
         self.data[1]
     }
 
     #[must_use]
-    pub fn z(&self) -> i32 {
+    pub const fn z(&self) -> i32 {
         self.data[2]
     }
 
@@ -47,12 +47,12 @@ impl Vector {
     }
 
     #[must_use]
-    pub fn data(self) -> [i32; 3] {
+    pub const fn data(self) -> [i32; 3] {
         self.data
     }
 
     #[must_use]
-    pub fn data_ref(&self) -> &[i32; 3] {
+    pub const fn data_ref(&self) -> &[i32; 3] {
         &self.data
     }
 
@@ -62,7 +62,7 @@ impl Vector {
     }
 }
 
-impl<T: Borrow<Vector>> Add<T> for Vector {
+impl<T: Borrow<Self>> Add<T> for Vector {
     type Output = Self;
 
     fn add(mut self, other: T) -> Self::Output {
@@ -75,7 +75,7 @@ impl<T: Borrow<Vector>> Add<T> for Vector {
     }
 }
 
-impl<T: Borrow<Vector>> AddAssign<T> for Vector {
+impl<T: Borrow<Self>> AddAssign<T> for Vector {
     fn add_assign(&mut self, other: T) {
         let other = other.borrow();
         for (s, o) in self.data.iter_mut().zip(other.data.iter()) {
@@ -133,7 +133,7 @@ impl NBody {
                         match pi.cmp(pj) {
                             Ordering::Less => *vi += 1,
                             Ordering::Greater => *vi -= 1,
-                            _ => {}
+                            Ordering::Equal => {}
                         }
                     }
                 }
@@ -164,12 +164,12 @@ impl NBody {
     }
 
     #[must_use]
-    pub fn positions(&self) -> &Vec<Vector> {
+    pub const fn positions(&self) -> &Vec<Vector> {
         &self.positions
     }
 
     #[must_use]
-    pub fn velocities(&self) -> &Vec<Vector> {
+    pub const fn velocities(&self) -> &Vec<Vector> {
         &self.velocities
     }
 }

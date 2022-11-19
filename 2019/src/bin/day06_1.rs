@@ -15,7 +15,7 @@ fn day06_1(input: impl BufRead) -> u32 {
         })
         .collect();
 
-    orbits.num_orbits(1, &"COM")
+    orbits.num_orbits(1, "COM")
 }
 
 #[cfg(test)]
