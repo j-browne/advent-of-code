@@ -10,12 +10,12 @@ fn run(input: &str) -> u32 {
 
 mod test {
     #[test]
-    fn day_02_01_test() {
+    fn day_02_02_test() {
         assert_eq!(super::run(include_str!("input/day_02_test.txt")), 12);
     }
 
     #[test]
-    fn day_02_01() {
+    fn day_02_02() {
         assert_eq!(super::run(include_str!("input/day_02.txt")), 11618);
     }
 }
