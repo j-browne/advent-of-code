@@ -24,7 +24,7 @@ impl<'a> Rucksacks<'a> {
                 let a = x[0].inner.iter().collect::<HashSet<_>>();
                 let b = x[1].inner.iter().collect::<HashSet<_>>();
                 let c = x[2].inner.iter().collect::<HashSet<_>>();
-                let ab = a.intersection(&b).map(|x| *x).collect::<HashSet<_>>();
+                let ab = a.intersection(&b).copied().collect::<HashSet<_>>();
                 item_priority(**ab.intersection(&c).next().unwrap())
             })
             .sum()
@@ -37,7 +37,7 @@ struct Pair<'a> {
 
 impl<'a> Pair<'a> {
     #[must_use]
-    fn new(s: &'a str) -> Self {
+    const fn new(s: &'a str) -> Self {
         Self {
             inner: s.as_bytes(),
         }
