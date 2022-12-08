@@ -8,8 +8,7 @@ fn run(input: &'static str) -> u32 {
     Files::new(input)
         .files()
         .values()
-        .filter(|(ty, size)| *ty == Ty::Dir && *size < 100_000)
-        .map(|(_, x)| x)
+        .filter_map(|(ty, size)| (*ty == Ty::Dir && *size < 100_000).then_some(size))
         .sum::<u32>()
 }
 

@@ -11,8 +11,7 @@ fn run(input: &str) -> u32 {
 
     *files
         .values()
-        .filter(|(ty, size)| *ty == Ty::Dir && *size > needed_space)
-        .map(|(_, x)| x)
+        .filter_map(|(ty, size)| (*ty == Ty::Dir && *size > needed_space).then_some(size))
         .min()
         .unwrap()
 }
