@@ -1,5 +1,8 @@
 use crate::array_2d::Array2d;
-use std::cmp;
+use std::{
+    cmp,
+    iter::{repeat, zip},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Trees {
@@ -92,45 +95,28 @@ impl Trees {
 
         for i in 1..(dim.0 - 1) {
             for j in 1..(dim.1 - 1) {
+                let new_pos: [Box<dyn Iterator<Item = (usize, usize)>>; 4] = [
+                    Box::new(zip((0..i).rev(), repeat(j))),     // left
+                    Box::new(zip((i + 1)..(dim.0), repeat(j))), // right
+                    Box::new(zip(repeat(i), (0..j).rev())),     // up
+                    Box::new(zip(repeat(i), (j + 1)..(dim.1))), // down
+                ];
+
                 let curr_height = self.heights[(i, j)];
 
-                // left
-                let mut max_dist_l = 0;
-                for di in 1..=i {
-                    let height = self.heights[(i - di, j)];
-                    max_dist_l += 1;
-                    if height >= curr_height {
-                        break;
-                    }
-                }
-                // right
-                let mut max_dist_r = 0;
-                for di in 1..(dim.0 - i) {
-                    let height = self.heights[(i + di, j)];
-                    max_dist_r += 1;
-                    if height >= curr_height {
-                        break;
-                    }
-                }
-                // up
-                let mut max_dist_u = 0;
-                for dj in 1..=j {
-                    let height = self.heights[(i, j - dj)];
-                    max_dist_u += 1;
-                    if height >= curr_height {
-                        break;
-                    }
-                }
-                // down
-                let mut max_dist_d = 0;
-                for dj in 1..(dim.1 - j) {
-                    let height = self.heights[(i, j + dj)];
-                    max_dist_d += 1;
-                    if height >= curr_height {
-                        break;
-                    }
-                }
-                let scenic_score = max_dist_l * max_dist_r * max_dist_u * max_dist_d;
+                let scenic_score = new_pos
+                    .into_iter()
+                    .map(|it| {
+                        let mut max_dist = 0;
+                        for pos in it {
+                            max_dist += 1;
+                            if self.heights[dbg!(pos)] >= curr_height {
+                                break;
+                            }
+                        }
+                        max_dist
+                    })
+                    .product();
                 max_scenic_score = cmp::max(scenic_score, max_scenic_score);
             }
         }
