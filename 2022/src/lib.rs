@@ -4,6 +4,7 @@ pub mod cleaning;
 pub mod crates;
 pub mod datastream;
 pub mod filesystem;
+pub mod rope;
 pub mod rosham;
 pub mod rucksacks;
 pub mod trees;
