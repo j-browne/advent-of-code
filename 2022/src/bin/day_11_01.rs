@@ -5,8 +5,8 @@ fn main() {
 }
 
 fn run(input: &str) -> usize {
-    let mut keep_away = KeepAway::new(input);
-    keep_away.run(20, true);
+    let mut keep_away = KeepAway::new(input, true);
+    keep_away.run(20);
     keep_away.monkey_business()
 }
 

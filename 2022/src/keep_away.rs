@@ -1,19 +1,43 @@
-use std::{collections::BinaryHeap, mem};
+use std::{
+    collections::{BinaryHeap, HashMap},
+    mem,
+    ops::{AddAssign, DivAssign, MulAssign, Rem},
+};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct KeepAway {
     monkeys: Vec<Monkey>,
+    with_reducing: bool,
 }
 
 impl KeepAway {
     #[must_use]
-    pub fn new(s: &str) -> Self {
-        let monkeys = s.split("\n\n").map(Monkey::new).collect();
+    pub fn new(s: &str, with_reducing: bool) -> Self {
+        let mut monkeys = s.split("\n\n").map(Monkey::new).collect::<Vec<_>>();
 
-        Self { monkeys }
+        if !with_reducing {
+            let divisors = monkeys
+                .iter()
+                .map(|m| {
+                    let Test::Divisible(d) = m.test;
+                    d
+                })
+                .collect::<Vec<_>>();
+
+            for m in &mut monkeys {
+                for item in &mut m.items {
+                    item.to_mods(&divisors);
+                }
+            }
+        };
+
+        Self {
+            monkeys,
+            with_reducing,
+        }
     }
 
-    pub fn run(&mut self, rounds: usize, with_reducing: bool) {
+    pub fn run(&mut self, rounds: usize) {
         let mut tmp_items = vec![];
 
         for _ in 0..rounds {
@@ -28,7 +52,7 @@ impl KeepAway {
 
                 #[allow(clippy::iter_with_drain)]
                 for mut item in tmp_items.drain(..) {
-                    match if apply_and_test(&mut item, operation, test, with_reducing) {
+                    match if apply_and_test(&mut item, operation, test, self.with_reducing) {
                         &if_true
                     } else {
                         &if_false
@@ -51,10 +75,10 @@ impl KeepAway {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Monkey {
     inspections: usize,
-    items: Vec<u128>,
+    items: Vec<Item>,
     operation: Operation,
     test: Test,
     if_true: Action,
@@ -70,12 +94,7 @@ impl Monkey {
 
         let mut it_2 = it_1.next().unwrap().split(": ");
         assert_eq!(it_2.next().unwrap(), "  Starting items");
-        let items = it_2
-            .next()
-            .unwrap()
-            .split(", ")
-            .map(|x| (x.parse().unwrap()))
-            .collect();
+        let items = it_2.next().unwrap().split(", ").map(Item::new).collect();
 
         let mut it_2 = it_1.next().unwrap().split(": ");
         assert_eq!(it_2.next().unwrap(), "  Operation");
@@ -105,24 +124,25 @@ impl Monkey {
 }
 
 #[must_use]
-fn apply_and_test(item: &mut u128, operation: Operation, test: Test, with_reducing: bool) -> bool {
-    *item = match operation {
-        Operation::Add(other) => *item + other,
-        Operation::Mul(other) => *item * other,
-        Operation::MulSelf => *item * *item,
+fn apply_and_test(item: &mut Item, operation: Operation, test: Test, with_reducing: bool) -> bool {
+    match operation {
+        Operation::Add(other) => *item += other,
+        Operation::Mul(other) => *item *= other,
+        Operation::MulSelf => item.mul_self(),
     };
+
     if with_reducing {
         *item /= 3;
     }
 
     let Test::Divisible(d) = test;
-    *item % d == 0
+    &*item % d == 0
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Operation {
-    Add(u128),
-    Mul(u128),
+    Add(u32),
+    Mul(u32),
     MulSelf,
 }
 
@@ -144,7 +164,7 @@ impl Operation {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Test {
-    Divisible(u128),
+    Divisible(u32),
 }
 
 impl Test {
@@ -170,5 +190,99 @@ impl Action {
         assert_eq!(it.next().unwrap(), "to");
         assert_eq!(it.next().unwrap(), "monkey");
         Self::ThrowTo(it.next().unwrap().parse().unwrap())
+    }
+}
+
+#[derive(Debug, Clone)]
+enum Item {
+    Single(u32),
+    Mods(HashMap<u32, u32>),
+}
+
+impl Item {
+    #[must_use]
+    fn new(s: &str) -> Self {
+        let worry = s.parse().unwrap();
+
+        Self::Single(worry)
+    }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn to_mods(&mut self, divisors: &[u32]) {
+        if let Self::Single(initial) = self {
+            *self = Self::Mods(divisors.iter().map(|d| (*d, *initial)).collect());
+        } else {
+            panic!("cannot convert to Item::Mods if alread Item::Mods");
+        }
+    }
+
+    fn mul_self(&mut self) {
+        match self {
+            Self::Single(w) => {
+                *w *= *w;
+            }
+            Self::Mods(ws) => {
+                for (d, w) in ws.iter_mut() {
+                    *w *= *w;
+                    *w %= d;
+                }
+            }
+        }
+    }
+}
+
+impl AddAssign<u32> for Item {
+    fn add_assign(&mut self, rhs: u32) {
+        match self {
+            Self::Single(w) => {
+                *w += rhs;
+            }
+            Self::Mods(ws) => {
+                for (d, w) in ws.iter_mut() {
+                    *w += rhs;
+                    *w %= d;
+                }
+            }
+        }
+    }
+}
+
+impl MulAssign<u32> for Item {
+    fn mul_assign(&mut self, rhs: u32) {
+        match self {
+            Self::Single(w) => {
+                *w *= rhs;
+            }
+            Self::Mods(ws) => {
+                for (d, w) in ws.iter_mut() {
+                    *w *= rhs;
+                    *w %= d;
+                }
+            }
+        }
+    }
+}
+
+impl DivAssign<u32> for Item {
+    fn div_assign(&mut self, rhs: u32) {
+        match self {
+            Self::Single(w) => {
+                *w /= rhs;
+            }
+            Self::Mods(_ws) => {
+                panic!("cannot divide Item::Mods");
+            }
+        }
+    }
+}
+
+impl Rem<u32> for &Item {
+    type Output = u32;
+
+    fn rem(self, rhs: u32) -> Self::Output {
+        match self {
+            Item::Single(w) => w % rhs,
+            Item::Mods(ws) => ws[&rhs],
+        }
     }
 }
