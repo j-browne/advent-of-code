@@ -5,6 +5,7 @@ pub mod crates;
 pub mod crt;
 pub mod datastream;
 pub mod filesystem;
+pub mod keep_away;
 pub mod rope;
 pub mod rosham;
 pub mod rucksacks;
