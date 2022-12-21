@@ -149,13 +149,11 @@ impl<T> Array2d<T> {
     }
 
     #[must_use]
-    #[allow(clippy::iter_not_returning_iterator)]
     pub fn iter(&self) -> <&Self as IntoIterator>::IntoIter {
         self.into_iter()
     }
 
     #[must_use]
-    #[allow(clippy::iter_not_returning_iterator)]
     pub fn iter_mut(&mut self) -> <&mut Self as IntoIterator>::IntoIter {
         self.into_iter()
     }
