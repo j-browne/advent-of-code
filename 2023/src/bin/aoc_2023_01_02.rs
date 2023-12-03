@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 fn main() {
-    println!("{}", run(include_str!("input/aoc_2023_01_test.txt")));
+    println!("{}", run(include_str!("input/aoc_2023_01.txt")));
 }
 
 fn run(input: &str) -> u32 {
@@ -36,12 +36,12 @@ fn run(input: &str) -> u32 {
 
 mod test {
     #[test]
-    fn day_01_02_test_01() {
+    fn aoc_2023_01_02_test_01() {
         assert_eq!(super::run(include_str!("input/aoc_2023_01_test.txt")), 142);
     }
 
     #[test]
-    fn day_01_02_test_02() {
+    fn aoc_2023_01_02_test_02() {
         assert_eq!(
             super::run(include_str!("input/aoc_2023_01_02_test.txt")),
             281
@@ -49,7 +49,7 @@ mod test {
     }
 
     #[test]
-    fn day_01_02() {
+    fn aoc_2023_01_02() {
         assert_eq!(super::run(include_str!("input/aoc_2023_01.txt")), 53268);
     }
 }

@@ -1,5 +1,5 @@
 fn main() {
-    println!("{}", run(include_str!("input/aoc_2023_01_test.txt")));
+    println!("{}", run(include_str!("input/aoc_2023_01.txt")));
 }
 
 fn run(input: &str) -> u32 {
@@ -14,12 +14,12 @@ fn run(input: &str) -> u32 {
 
 mod test {
     #[test]
-    fn day_01_01_test() {
+    fn aoc_2023_01_01_test() {
         assert_eq!(super::run(include_str!("input/aoc_2023_01_test.txt")), 142);
     }
 
     #[test]
-    fn day_01_01() {
+    fn aoc_2023_01_01() {
         assert_eq!(super::run(include_str!("input/aoc_2023_01.txt")), 53080);
     }
 }
