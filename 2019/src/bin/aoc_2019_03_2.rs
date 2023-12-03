@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    collections::HashSet,
+    collections::HashMap,
     convert::TryFrom,
     io::{stdin, BufRead},
     iter::repeat,
@@ -50,7 +50,7 @@ impl<Rhs: Borrow<Move>> Add<Rhs> for &mut Position {
     fn add(self, rhs: Rhs) -> Self::Output {
         let rhs = rhs.borrow();
 
-        let mut out = self;
+        let out = self;
         match rhs.direction {
             Direction::Up => out.1 += rhs.distance,
             Direction::Right => out.0 += rhs.distance,
@@ -113,10 +113,10 @@ impl TryFrom<&str> for Move {
 }
 
 fn main() {
-    println!("{}", day03_1(stdin().lock()));
+    println!("{}", day03_2(stdin().lock()));
 }
 
-fn day03_1(input: impl BufRead) -> i32 {
+fn day03_2(input: impl BufRead) -> usize {
     let pos = input
         .lines()
         .take(2)
@@ -136,13 +136,15 @@ fn day03_1(input: impl BufRead) -> i32 {
                     .take(usize::try_from(distance).unwrap())
                 })
                 .scan(Position(0, 0), |p, m| Some(p + m))
-                .collect::<HashSet<Position>>()
+                .enumerate()
+                .map(|(a, b)| (b, a + 1))
+                .collect::<HashMap<Position, usize>>()
         })
         .collect::<Vec<_>>();
 
     pos[0]
-        .intersection(&pos[1])
-        .map(|a| a.0.abs() + a.1.abs())
+        .iter()
+        .filter_map(|(k, v1)| pos[1].get(k).map(|v2| v1 + v2))
         .min()
         .unwrap()
 }
@@ -150,12 +152,12 @@ fn day03_1(input: impl BufRead) -> i32 {
 #[cfg(test)]
 mod test {
     #[test]
-    fn day03_1() {
+    fn day03_2() {
         use std::{fs::File, io::BufReader};
 
         assert_eq!(
-            super::day03_1(BufReader::new(File::open("input/input_day03.txt").unwrap())),
-            1211
+            super::day03_2(BufReader::new(File::open("input/input_day03.txt").unwrap())),
+            101386
         );
     }
 }
