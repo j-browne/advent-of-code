@@ -21,11 +21,11 @@ fn run(input: &str) -> u32 {
         .map(|old_s| {
             let mut s = String::from(old_s);
             for (name, digit) in &digit_map {
-                if let Some(idx_l) = old_s.find(name) {
-                    s.replace_range(idx_l..(idx_l + 1), digit);
+                if let Some(idx) = old_s.find(name) {
+                    s.replace_range(idx..=idx, digit);
                 }
-                if let Some(idx_r) = old_s.rfind(name) {
-                    s.replace_range(idx_r..(idx_r + 1), digit);
+                if let Some(idx) = old_s.rfind(name) {
+                    s.replace_range(idx..=idx, digit);
                 }
             }
             let digits: Vec<_> = s.chars().filter_map(|c| c.to_digit(10)).collect();

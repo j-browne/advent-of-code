@@ -5,6 +5,7 @@ pub struct CubeGame {
 }
 
 impl CubeGame {
+    #[must_use]
     pub fn new(s: &str) -> Self {
         let mut pull_maxima = HashMap::new();
 
@@ -24,6 +25,7 @@ impl CubeGame {
         Self { pull_maxima }
     }
 
+    #[must_use]
     pub fn is_valid_for(&self, bag_maxima: &HashMap<String, u32>) -> bool {
         for (color, max) in &self.pull_maxima {
             if max > bag_maxima.get(color).unwrap_or(&0) {
@@ -33,7 +35,8 @@ impl CubeGame {
         true
     }
 
+    #[must_use]
     pub fn power(&self) -> u32 {
-        self.pull_maxima.iter().map(|(_, n)| n).product::<u32>()
+        self.pull_maxima.values().product::<u32>()
     }
 }
