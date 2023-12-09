@@ -4,5 +4,6 @@ pub mod camel_cards;
 pub mod cube_game;
 pub mod desert_map;
 pub mod engine;
+pub mod oasis;
 pub mod races;
 pub mod scratchcard;
