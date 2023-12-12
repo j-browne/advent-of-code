@@ -5,5 +5,6 @@ pub mod cube_game;
 pub mod desert_map;
 pub mod engine;
 pub mod oasis;
+pub mod pipe_maze;
 pub mod races;
 pub mod scratchcard;

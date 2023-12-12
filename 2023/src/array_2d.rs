@@ -29,12 +29,28 @@ impl<T> Array2d<T> {
     }
 
     #[inline]
+    #[must_use]
     fn idx<I>(&self, x: I, y: I) -> I
     where
         I: Mul<Output = I> + Add<Output = I> + TryFrom<usize>,
         <I as TryFrom<usize>>::Error: Debug,
     {
         I::try_from(self.dim.1).unwrap() * y + x
+    }
+
+    #[must_use]
+    pub fn indices(&self, idx: usize) -> Option<(usize, usize)> {
+        (idx < self.data.len()).then(|| (idx % self.dim.1, idx / self.dim.1))
+    }
+
+    pub fn position<F>(&self, predicate: F) -> Option<(usize, usize)>
+    where
+        F: FnMut(&T) -> bool,
+    {
+        self.data
+            .iter()
+            .position(predicate)
+            .map(|idx| self.indices(idx).unwrap())
     }
 
     pub fn neighbors(&self, x: usize, y: usize) -> impl Iterator<Item = &T> + '_ {
