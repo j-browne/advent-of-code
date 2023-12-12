@@ -43,6 +43,6 @@ mod test {
 
     #[test]
     fn aoc_2023_10_02() {
-        assert_eq!(super::run(include_str!("input/aoc_2023_10.txt")), 6856);
+        assert_eq!(super::run(include_str!("input/aoc_2023_10.txt")), 501);
     }
 }

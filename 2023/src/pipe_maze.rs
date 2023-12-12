@@ -1,8 +1,12 @@
-use std::ops::{Add, Neg};
+use std::{
+    iter::zip,
+    ops::{Add, Neg},
+};
 
 use crate::array_2d::Array2d;
 
 pub struct Maze {
+    start: (usize, usize),
     map: Array2d<Tile>,
 }
 
@@ -16,8 +20,27 @@ impl Maze {
         );
 
         let data = it.flat_map(|l| l.chars().map(Tile::new)).collect();
-        let map = Array2d::new(dim, data);
-        Maze { map }
+        let mut map = Array2d::new(dim, data);
+
+        let start = map.position(|x| *x == Tile::Start).unwrap();
+        let new_tile = {
+            let mut it = map.neighbor_indices(start.0, start.1).filter_map(|dest| {
+                let direction = Dir::from_diff(start, dest);
+                match (direction, map[dest]) {
+                    (Dir::Up | Dir::Down, Tile::UpDown)
+                    | (Dir::Up | Dir::Left, Tile::RightDown)
+                    | (Dir::Up | Dir::Right, Tile::DownLeft)
+                    | (Dir::Right | Dir::Down, Tile::UpLeft)
+                    | (Dir::Right | Dir::Left, Tile::RightLeft)
+                    | (Dir::Down | Dir::Left, Tile::UpRight) => Some(direction),
+                    _ => None,
+                }
+            });
+            Tile::from_dirs(it.next().unwrap(), it.next().unwrap())
+        };
+        map[start] = new_tile;
+
+        Maze { start, map }
     }
 
     #[must_use]
@@ -33,49 +56,63 @@ impl Maze {
     #[must_use]
     pub fn num_enclosed(&self) -> u32 {
         let distances = self.calculate_distances();
-        todo!()
+
+        let mut inside = false;
+        let mut last_turn = None;
+        let mut num_inside = 0;
+        for (map, dist) in zip(self.map.data().iter(), distances.data().iter()) {
+            match (dist, last_turn, map) {
+                (None, _, _) => {
+                    if inside {
+                        num_inside += 1;
+                    }
+                }
+                (Some(_), None, Tile::UpRight | Tile::RightDown) => {
+                    last_turn = Some(*map);
+                }
+                (Some(_), Some(Tile::UpRight), Tile::UpLeft)
+                | (Some(_), Some(Tile::RightDown), Tile::DownLeft) => {
+                    last_turn = None;
+                }
+                (Some(_), Some(Tile::UpRight), Tile::DownLeft)
+                | (Some(_), Some(Tile::RightDown), Tile::UpLeft) => {
+                    inside = !inside;
+                    last_turn = None;
+                }
+                (Some(_), Some(_), Tile::RightLeft) => {}
+                (Some(_), None, Tile::UpDown) => {
+                    inside = !inside;
+                }
+                _ => panic!("invalid state: ({dist:?} {last_turn:?} {map:?})"),
+            }
+        }
+
+        num_inside
     }
 
     #[must_use]
     fn calculate_distances(&self) -> Array2d<Option<u32>> {
         let mut distances = Array2d::new(self.map.dim(), vec![None; self.map.data().len()]);
-        let start = self.map.position(|x| *x == Tile::Start).unwrap();
 
-        distances[start] = Some(0);
+        distances[self.start] = Some(0);
         let mut curr_distance = 1;
-        let mut curr_dirs = self.starting_curr_dirs(start);
+        let start_dirs = self.map[self.start].dirs();
+        let mut curr_dirs = [
+            (self.start + start_dirs.0, start_dirs.0),
+            (self.start + start_dirs.1, start_dirs.1),
+        ];
 
         while curr_dirs[0].0 != curr_dirs[1].0 {
             for (curr, dir) in &mut curr_dirs {
+                distances[*curr] = Some(curr_distance);
                 *dir = self.map[*curr].next_dir(-*dir);
                 *curr = *curr + *dir;
-                distances[*curr] = Some(curr_distance);
             }
             curr_distance += 1;
         }
         distances[curr_dirs[0].0] = Some(curr_distance);
 
         distances
-    }
-
-    #[must_use]
-    fn starting_curr_dirs(&self, start: (usize, usize)) -> [((usize, usize), Dir); 2] {
-        let mut it = self
-            .map
-            .neighbor_indices(start.0, start.1)
-            .filter_map(|dest| {
-                let dir = Dir::from_diff(start, dest);
-                match (dir, self.map[dest]) {
-                    (Dir::Up | Dir::Down, Tile::UpDown)
-                    | (Dir::Up | Dir::Left, Tile::RightDown)
-                    | (Dir::Up | Dir::Right, Tile::DownLeft)
-                    | (Dir::Right | Dir::Down, Tile::UpLeft)
-                    | (Dir::Right | Dir::Left, Tile::RightLeft)
-                    | (Dir::Down | Dir::Left, Tile::UpRight) => Some((dest, dir)),
-                    _ => None,
-                }
-            });
-        [it.next().unwrap(), it.next().unwrap()]
     }
 }
 
@@ -92,6 +129,7 @@ enum Tile {
 }
 
 impl Tile {
+    #[must_use]
     fn new(c: char) -> Self {
         match c {
             '.' => Self::Empty,
@@ -102,10 +140,24 @@ impl Tile {
             'F' => Self::RightDown,
             '-' => Self::RightLeft,
             '7' => Self::DownLeft,
-            _ => panic!("unknown tile"),
+            _ => panic!("unknown tile: {c}"),
         }
     }
 
+    #[must_use]
+    fn from_dirs(d1: Dir, d2: Dir) -> Self {
+        match (d1, d2) {
+            (Dir::Up, Dir::Right) | (Dir::Right, Dir::Up) => Self::UpRight,
+            (Dir::Up, Dir::Down) | (Dir::Down, Dir::Up) => Self::UpDown,
+            (Dir::Up, Dir::Left) | (Dir::Left, Dir::Up) => Self::UpLeft,
+            (Dir::Right, Dir::Down) | (Dir::Down, Dir::Right) => Self::RightDown,
+            (Dir::Right, Dir::Left) | (Dir::Left, Dir::Right) => Self::RightLeft,
+            (Dir::Down, Dir::Left) | (Dir::Left, Dir::Down) => Self::DownLeft,
+            _ => panic!("invalid dir combination: {d1:?} {d2:?}"),
+        }
+    }
+
+    #[must_use]
     #[allow(clippy::match_same_arms)]
     fn next_dir(self, from: Dir) -> Dir {
         match (self, from) {
@@ -122,6 +174,19 @@ impl Tile {
             (Self::DownLeft, Dir::Down) => Dir::Left,
             (Self::DownLeft, Dir::Left) => Dir::Down,
             _ => panic!("can't navigate {self:?} {from:?}"),
+        }
+    }
+
+    #[must_use]
+    fn dirs(self) -> (Dir, Dir) {
+        match self {
+            Self::UpRight => (Dir::Up, Dir::Right),
+            Self::UpDown => (Dir::Up, Dir::Down),
+            Self::UpLeft => (Dir::Up, Dir::Left),
+            Self::RightDown => (Dir::Right, Dir::Down),
+            Self::RightLeft => (Dir::Right, Dir::Left),
+            Self::DownLeft => (Dir::Down, Dir::Left),
+            _ => panic!("{self:?} doesn't have dirs"),
         }
     }
 }
