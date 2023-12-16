@@ -8,5 +8,6 @@ pub mod galaxy;
 pub mod mirrors;
 pub mod oasis;
 pub mod pipe_maze;
+pub mod platform;
 pub mod races;
 pub mod scratchcard;
