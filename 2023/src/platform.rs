@@ -163,7 +163,7 @@ impl Platform {
                 offset = i;
                 break;
             }
-            visited.insert(clone.layout.data().to_vec(), curr);
+            visited.insert(clone.layout.data().clone(), curr);
             loads.push(clone.load());
             curr += 1;
             clone.cycle();
