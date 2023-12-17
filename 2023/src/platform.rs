@@ -1,5 +1,5 @@
 use crate::array_2d::Array2d;
-use std::{fmt::Display, iter::zip};
+use std::{collections::HashMap, fmt::Display};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Platform {
@@ -153,32 +153,25 @@ impl Platform {
 
     #[must_use]
     pub fn load_after(&self, n: usize) -> u32 {
-        let offset = 10000;
-        let max_cycle = 100;
-
+        let mut visited = HashMap::new();
+        let mut loads = Vec::new();
         let mut clone = self.clone();
-        for _ in 0..offset {
-            clone.cycle();
-        }
-
-        let loads = (0..(2 * max_cycle))
-            .map(|_| {
-                clone.cycle();
-                clone.load()
-            })
-            .collect::<Vec<_>>();
-
-        let mut cycle = None;
-        for i in 2..max_cycle {
-            if zip(loads.iter(), loads.iter().skip(i)).all(|(a, b)| a == b) {
-                cycle = Some(i);
+        let offset;
+        let mut curr = 0;
+        loop {
+            if let Some(i) = visited.get(clone.layout.data()) {
+                offset = i;
                 break;
             }
+            visited.insert(clone.layout.data().to_vec(), curr);
+            loads.push(clone.load());
+            curr += 1;
+            clone.cycle();
         }
-        let cycle = cycle.expect("no cycle detected");
+        let cycle = curr - offset;
 
-        let in_load = (n - offset) % cycle - 1;
-        loads[in_load]
+        let idx = (n - offset) % cycle + offset;
+        loads[idx]
     }
 }
 
