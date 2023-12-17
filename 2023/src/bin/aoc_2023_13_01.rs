@@ -1,4 +1,4 @@
-use aoc_2023::mirrors::Mirror;
+use aoc_2023::mirror_images::Mirror;
 
 fn main() {
     println!("{}", run(include_str!("input/aoc_2023_13.txt")));
