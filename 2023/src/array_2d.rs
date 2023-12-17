@@ -28,6 +28,11 @@ impl<T> Array2d<T> {
         &self.data
     }
 
+    #[must_use]
+    pub fn get(&self, x: usize, y: usize) -> Option<&T> {
+        (x < self.dim.1 && y < self.dim.0).then_some(&self.data[self.idx(x, y)])
+    }
+
     #[inline]
     #[must_use]
     fn idx<I>(&self, x: I, y: I) -> I

@@ -7,6 +7,7 @@ pub mod engine;
 pub mod galaxy;
 pub mod lenses;
 pub mod mirror_images;
+pub mod mirror_map;
 pub mod oasis;
 pub mod pipe_maze;
 pub mod platform;
