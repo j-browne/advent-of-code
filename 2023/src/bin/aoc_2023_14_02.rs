@@ -4,7 +4,7 @@ fn main() {
     println!("{}", run(include_str!("input/aoc_2023_14.txt")));
 }
 
-fn run(input: &str) -> u32 {
+fn run(input: &str) -> usize {
     Platform::new(input).load_after(1_000_000_000)
 }
 

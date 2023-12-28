@@ -1,12 +1,12 @@
-use aoc_2023::platform::Platform;
+use aoc_2023::{array_2d::Dir, platform::Platform};
 
 fn main() {
     println!("{}", run(include_str!("input/aoc_2023_14.txt")));
 }
 
-fn run(input: &str) -> u32 {
+fn run(input: &str) -> usize {
     let mut p = Platform::new(input);
-    p.tilt_up();
+    p.tilt(Dir::Up);
     p.load()
 }
 

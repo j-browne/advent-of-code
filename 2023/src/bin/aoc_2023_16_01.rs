@@ -1,11 +1,14 @@
-use aoc_2023::mirror_map::{Dir, MirrorMap};
+use aoc_2023::{
+    array_2d::{Dir, Indices},
+    mirror_map::MirrorMap,
+};
 
 fn main() {
     println!("{}", run(include_str!("input/aoc_2023_16.txt")));
 }
 
 fn run(input: &str) -> usize {
-    MirrorMap::new(input).num_energized((0, 0), Dir::Right)
+    MirrorMap::new(input).num_energized(Indices { row: 0, col: 0 }, Dir::Right)
 }
 
 mod test {

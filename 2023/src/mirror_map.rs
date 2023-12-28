@@ -1,31 +1,22 @@
-use crate::array_2d::Array2d;
-use std::{
-    collections::HashSet,
-    ops::{Add, Neg},
-};
+use crate::array_2d::{Array2d, Dimensions, Dir, Indices};
+use std::collections::HashSet;
 
 pub struct MirrorMap {
-    map: Array2d<Tile>,
+    map: Array2d<usize, Tile>,
 }
 
 impl MirrorMap {
     #[must_use]
     pub fn new(s: &str) -> Self {
-        let it = s.lines();
-        let dim = (
-            it.clone().count(),
-            it.clone().peekable().peek().unwrap().len(),
-        );
-        let data = it.flat_map(|l| l.chars().map(Tile::new)).collect();
-        let map = Array2d::new(dim, data);
+        let map = Array2d::from_grid(s, Tile::new);
 
         Self { map }
     }
 
     #[must_use]
-    pub fn num_energized(&self, start: (usize, usize), dir: Dir) -> usize {
-        let data = vec![HashSet::new(); self.map.dim().0 * self.map.dim().1];
-        let mut light = Array2d::new(self.map.dim(), data);
+    pub fn num_energized(&self, start: Indices<usize>, dir: Dir) -> usize {
+        let data = vec![HashSet::new(); self.map.row_diff() * self.map.col_diff()];
+        let mut light = Array2d::new(self.map.dims().clone(), data);
         let mut currs = vec![(start, dir)];
         while !currs.is_empty() {
             let mut new_currs = Vec::new();
@@ -34,9 +25,10 @@ impl MirrorMap {
                     light[curr.0].insert(curr.1);
                     new_currs.extend(self.map[curr.0].next_dir(curr.1).into_iter().filter_map(
                         |dir| {
-                            (curr.0 + dir).and_then(|x| {
-                                (x.0 < self.map.dim().1 && x.1 < self.map.dim().0)
-                                    .then_some((x, dir))
+                            (curr.0 + dir).and_then(|indices| {
+                                (self.map.dims().cols.contains(&indices.col)
+                                    && self.map.dims().rows.contains(&indices.row))
+                                .then_some((indices, dir))
                             })
                         },
                     ));
@@ -48,8 +40,8 @@ impl MirrorMap {
     }
 
     #[must_use]
-    pub fn dim(&self) -> (usize, usize) {
-        self.map.dim()
+    pub fn dims(&self) -> Dimensions<usize> {
+        self.map.dims().clone()
     }
 }
 
@@ -63,14 +55,14 @@ enum Tile {
 }
 
 impl Tile {
-    fn new(c: char) -> Self {
-        match c {
-            '.' => Self::Empty,
-            '/' => Self::MirrorUpRight,
-            '\\' => Self::MirrorDownRight,
-            '|' => Self::SplitterUpDown,
-            '-' => Self::SplitterRightLeft,
-            _ => panic!("unknown tile: {c}"),
+    fn new(b: u8) -> Self {
+        match b {
+            b'.' => Self::Empty,
+            b'/' => Self::MirrorUpRight,
+            b'\\' => Self::MirrorDownRight,
+            b'|' => Self::SplitterUpDown,
+            b'-' => Self::SplitterRightLeft,
+            _ => panic!("unknown tile: {b}"),
         }
     }
 
@@ -91,40 +83,7 @@ impl Tile {
             (Self::SplitterUpDown, Dir::Up | Dir::Down) => vec![from],
             (Self::SplitterRightLeft, Dir::Right | Dir::Left) => vec![from],
             (Self::SplitterRightLeft, Dir::Up | Dir::Down) => vec![Dir::Right, Dir::Left],
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Dir {
-    Up,
-    Right,
-    Down,
-    Left,
-}
-
-impl Neg for Dir {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
-        match self {
-            Self::Up => Self::Down,
-            Self::Right => Self::Left,
-            Self::Down => Self::Up,
-            Self::Left => Self::Right,
-        }
-    }
-}
-
-impl Add<Dir> for (usize, usize) {
-    type Output = Option<(usize, usize)>;
-
-    fn add(self, rhs: Dir) -> Self::Output {
-        match rhs {
-            Dir::Up => usize::checked_sub(self.1, 1).map(|y| (self.0, y)),
-            Dir::Right => usize::checked_add(self.0, 1).map(|x| (x, self.1)),
-            Dir::Down => usize::checked_add(self.1, 1).map(|y| (self.0, y)),
-            Dir::Left => usize::checked_sub(self.0, 1).map(|x| (x, self.1)),
+            _ => panic!("invalid direction: {from:?}"),
         }
     }
 }

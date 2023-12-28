@@ -1,158 +1,69 @@
-use crate::array_2d::Array2d;
+use crate::array_2d::{Array2d, Dir};
 use std::{collections::HashMap, fmt::Display};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Platform {
-    layout: Array2d<Tile>,
+    layout: Array2d<usize, Tile>,
 }
 
 impl Platform {
     #[must_use]
     pub fn new(s: &str) -> Self {
-        let it = s.lines();
-        let dim = (
-            it.clone().count(),
-            it.clone().peekable().peek().unwrap().len(),
-        );
-
-        let data = it.flat_map(|l| l.chars().map(Tile::new)).collect();
-        let layout = Array2d::new(dim, data);
+        let layout = Array2d::from_grid(s, Tile::new);
         Self { layout }
     }
 
-    pub fn tilt_up(&mut self) {
-        let dim = self.layout.dim();
-        for col in 0..dim.1 {
-            let mut first = 0;
+    pub fn tilt(&mut self, dir: Dir) {
+        let dir = -dir;
+        for it in self.layout.iter_indices_2d(dir) {
+            let mut first = it.clone().next().unwrap();
             let mut count = 0;
-            for row in 0..dim.0 {
-                match self.layout[(col, row)] {
+            for indices in it {
+                match self.layout[indices] {
                     Tile::CubeRock => {
                         for i in 0..count {
-                            self.layout[(col, first + i)] = Tile::RoundRock;
+                            self.layout[(first + dir * i).unwrap()] = Tile::RoundRock;
                         }
-                        first = row + 1;
+                        if let Some(new_first) = indices + dir {
+                            first = new_first;
+                        }
                         count = 0;
                     }
                     Tile::RoundRock => {
                         count += 1;
-                        self.layout[(col, row)] = Tile::Empty;
+                        self.layout[indices] = Tile::Empty;
                     }
                     Tile::Empty => {}
                 }
             }
             for i in 0..count {
-                self.layout[(col, first + i)] = Tile::RoundRock;
-            }
-        }
-    }
-
-    pub fn tilt_left(&mut self) {
-        let dim = self.layout.dim();
-        for row in 0..dim.0 {
-            let mut first = 0;
-            let mut count = 0;
-            for col in 0..dim.1 {
-                match self.layout[(col, row)] {
-                    Tile::CubeRock => {
-                        for i in 0..count {
-                            self.layout[(first + i, row)] = Tile::RoundRock;
-                        }
-                        first = col + 1;
-                        count = 0;
-                    }
-                    Tile::RoundRock => {
-                        count += 1;
-                        self.layout[(col, row)] = Tile::Empty;
-                    }
-                    Tile::Empty => {}
-                }
-            }
-            for i in 0..count {
-                self.layout[(first + i, row)] = Tile::RoundRock;
-            }
-        }
-    }
-
-    pub fn tilt_down(&mut self) {
-        let dim = self.layout.dim();
-        for col in 0..dim.1 {
-            let mut first = dim.0 - 1;
-            let mut count = 0;
-            for row in (0..dim.0).rev() {
-                match self.layout[(col, row)] {
-                    Tile::CubeRock => {
-                        for i in 0..count {
-                            self.layout[(col, first - i)] = Tile::RoundRock;
-                        }
-                        first = usize::saturating_sub(row, 1);
-                        count = 0;
-                    }
-                    Tile::RoundRock => {
-                        count += 1;
-                        self.layout[(col, row)] = Tile::Empty;
-                    }
-                    Tile::Empty => {}
-                }
-            }
-            for i in 0..count {
-                self.layout[(col, first - i)] = Tile::RoundRock;
-            }
-        }
-    }
-
-    pub fn tilt_right(&mut self) {
-        let dim = self.layout.dim();
-        for row in 0..dim.0 {
-            let mut first = dim.1 - 1;
-            let mut count = 0;
-            for col in (0..dim.1).rev() {
-                match self.layout[(col, row)] {
-                    Tile::CubeRock => {
-                        for i in 0..count {
-                            self.layout[(first - i, row)] = Tile::RoundRock;
-                        }
-                        first = usize::saturating_sub(col, 1);
-                        count = 0;
-                    }
-                    Tile::RoundRock => {
-                        count += 1;
-                        self.layout[(col, row)] = Tile::Empty;
-                    }
-                    Tile::Empty => {}
-                }
-            }
-            for i in 0..count {
-                self.layout[(first - i, row)] = Tile::RoundRock;
+                self.layout[(first + dir * i).unwrap()] = Tile::RoundRock;
             }
         }
     }
 
     pub fn cycle(&mut self) {
-        self.tilt_up();
-        self.tilt_left();
-        self.tilt_down();
-        self.tilt_right();
+        self.tilt(Dir::Up);
+        self.tilt(Dir::Left);
+        self.tilt(Dir::Down);
+        self.tilt(Dir::Right);
     }
 
     #[must_use]
-    pub fn load(&self) -> u32 {
-        let dim = self.layout.dim();
-        u32::try_from(
-            (0..dim.0)
-                .map(|i| {
-                    (dim.0 - i)
-                        * (0..dim.1)
-                            .filter(|j| self.layout[(*j, i)] == Tile::RoundRock)
-                            .count()
-                })
-                .sum::<usize>(),
-        )
-        .unwrap()
+    pub fn load(&self) -> usize {
+        self.layout
+            .iter_indices_2d(Dir::Right)
+            .enumerate()
+            .map(|(row_i, it)| {
+                (self.layout.col_diff() - row_i)
+                    * it.filter(|indices| self.layout[*indices] == Tile::RoundRock)
+                        .count()
+            })
+            .sum()
     }
 
     #[must_use]
-    pub fn load_after(&self, n: usize) -> u32 {
+    pub fn load_after(&self, n: usize) -> usize {
         let mut visited = HashMap::new();
         let mut loads = Vec::new();
         let mut clone = self.clone();
@@ -177,10 +88,9 @@ impl Platform {
 
 impl Display for Platform {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let dim = self.layout.dim();
-        for row in 0..dim.0 {
-            for col in 0..dim.1 {
-                match self.layout[(col, row)] {
+        for row in self.layout.iter_indices_2d(Dir::Right) {
+            for indices in row {
+                match self.layout[indices] {
                     Tile::RoundRock => write!(f, "O")?,
                     Tile::CubeRock => write!(f, "#")?,
                     Tile::Empty => write!(f, ".")?,
@@ -200,12 +110,12 @@ enum Tile {
 }
 
 impl Tile {
-    fn new(c: char) -> Self {
-        match c {
-            'O' => Self::RoundRock,
-            '#' => Self::CubeRock,
-            '.' => Self::Empty,
-            _ => panic!("unknown tile: {c}"),
+    fn new(b: u8) -> Self {
+        match b {
+            b'O' => Self::RoundRock,
+            b'#' => Self::CubeRock,
+            b'.' => Self::Empty,
+            _ => panic!("unknown tile: {b}"),
         }
     }
 }

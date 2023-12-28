@@ -1,4 +1,8 @@
-use aoc_2023::mirror_map::{Dir, MirrorMap};
+use aoc_2023::{
+    array_2d::{Dir, Indices},
+    mirror_map::MirrorMap,
+};
+use std::iter::empty;
 
 fn main() {
     println!("{}", run(include_str!("input/aoc_2023_16.txt")));
@@ -6,11 +10,35 @@ fn main() {
 
 fn run(input: &str) -> usize {
     let map = MirrorMap::new(input);
-    (0..map.dim().0)
-        .map(|y| map.num_energized((0, y), Dir::Right))
-        .chain((0..map.dim().0).map(|y| map.num_energized((map.dim().1 - 1, y), Dir::Left)))
-        .chain((0..map.dim().1).map(|x| map.num_energized((x, 0), Dir::Down)))
-        .chain((0..map.dim().1).map(|x| map.num_energized((x, map.dim().0 - 1), Dir::Up)))
+    empty()
+        .chain(
+            map.dims()
+                .rows
+                .map(|row| map.num_energized(Indices { row, col: 0 }, Dir::Right)),
+        )
+        .chain(map.dims().rows.map(|row| {
+            map.num_energized(
+                Indices {
+                    col: map.dims().cols.end - 1,
+                    row,
+                },
+                Dir::Left,
+            )
+        }))
+        .chain(
+            map.dims()
+                .cols
+                .map(|col| map.num_energized(Indices { col, row: 0 }, Dir::Down)),
+        )
+        .chain(map.dims().cols.map(|col| {
+            map.num_energized(
+                Indices {
+                    col,
+                    row: map.dims().rows.end - 1,
+                },
+                Dir::Up,
+            )
+        }))
         .max()
         .unwrap()
 }
