@@ -1,5 +1,5 @@
 use std::{
-    fmt::Debug,
+    fmt::{Debug, Display},
     ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, Rem, Sub},
 };
 
@@ -19,10 +19,7 @@ where
 {
     #[must_use]
     pub fn new(dims: Dimensions<I>, data: Vec<T>) -> Self {
-        assert_eq!(
-            data.len(),
-            (dims.col_diff() * dims.row_diff()).try_into().unwrap()
-        );
+        assert_eq!(data.len(), (dims.n_cells()).try_into().unwrap());
         Self { dims, data }
     }
 
@@ -47,13 +44,18 @@ where
     }
 
     #[must_use]
-    pub fn row_diff(&self) -> I {
-        self.dims.row_diff()
+    pub fn n_cells(&self) -> I {
+        self.dims.n_cells()
     }
 
     #[must_use]
-    pub fn col_diff(&self) -> I {
-        self.dims.row_diff()
+    pub fn n_rows(&self) -> I {
+        self.dims.n_rows()
+    }
+
+    #[must_use]
+    pub fn n_cols(&self) -> I {
+        self.dims.n_cols()
     }
 
     #[must_use]
@@ -74,6 +76,16 @@ where
     #[must_use]
     pub fn get_mut(&mut self, indices: Indices<I>) -> Option<&mut T> {
         self.idx(indices).and_then(|idx| self.data.get_mut(idx))
+    }
+
+    #[must_use]
+    pub fn get_opt(&self, indices: Option<Indices<I>>) -> Option<&T> {
+        self.idx(indices?).and_then(|idx| self.data.get(idx))
+    }
+
+    #[must_use]
+    pub fn get_opt_mut(&mut self, indices: Option<Indices<I>>) -> Option<&mut T> {
+        self.idx(indices?).and_then(|idx| self.data.get_mut(idx))
     }
 
     #[must_use]
@@ -109,9 +121,16 @@ where
 
     #[must_use]
     pub fn iter_indices_2d(&self, minor_dir: Dir) -> IterIndices2d<I> {
+        let major = match minor_dir {
+            Dir::Up => self.dims.cols.start,
+            Dir::Right => self.dims.rows.start,
+            Dir::Down => self.dims.cols.end,
+            Dir::Left => self.dims.rows.end,
+            d => panic!("invalid iteration direction: {d:?}"),
+        };
         IterIndices2d {
             dims: self.dims.clone(),
-            major: 0.try_into().unwrap(),
+            major,
             minor_dir,
         }
     }
@@ -166,6 +185,25 @@ where
         .filter_map(move |dir| {
             (indices + dir).and_then(|indices| self.get(indices).map(|t| (indices, t)))
         })
+    }
+}
+
+impl<I, T> Display for Array2d<I, T>
+where
+    T: Display,
+    I: IndexCompatible,
+    <I as TryFrom<usize>>::Error: Debug,
+    <I as TryInto<usize>>::Error: Debug,
+    T: Debug, //DELETEME
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in self.iter_indices_2d(Dir::Right) {
+            for indices in row {
+                write!(f, "{}", self[indices])?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 
@@ -232,51 +270,61 @@ where
     type Item = IterIndices2dInner<I>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let next = match self.minor_dir {
-            Dir::Up => self
-                .dims
-                .cols
-                .contains(&self.major)
-                .then(|| IterIndices2dInner {
-                    dims: self.dims.clone(),
-                    major: self.major,
-                    minor: Some(self.dims.rows.end - 1.try_into().unwrap()),
-                    minor_dir: self.minor_dir,
-                }),
-            Dir::Right => self
-                .dims
-                .rows
-                .contains(&self.major)
-                .then(|| IterIndices2dInner {
-                    dims: self.dims.clone(),
-                    major: self.major,
-                    minor: Some(0.try_into().unwrap()),
-                    minor_dir: self.minor_dir,
-                }),
-            Dir::Down => self
-                .dims
-                .cols
-                .contains(&self.major)
-                .then(|| IterIndices2dInner {
-                    dims: self.dims.clone(),
-                    major: self.major,
-                    minor: Some(0.try_into().unwrap()),
-                    minor_dir: self.minor_dir,
-                }),
-            Dir::Left => self
-                .dims
-                .rows
-                .contains(&self.major)
-                .then(|| IterIndices2dInner {
-                    dims: self.dims.clone(),
-                    major: self.major,
-                    minor: Some(self.dims.cols.end - 1.try_into().unwrap()),
-                    minor_dir: self.minor_dir,
-                }),
+        match self.minor_dir {
+            Dir::Up => {
+                let next = self
+                    .dims
+                    .cols
+                    .contains(&self.major)
+                    .then(|| IterIndices2dInner {
+                        dims: self.dims.clone(),
+                        major: self.major,
+                        minor: Some(self.dims.rows.end - 1.try_into().unwrap()),
+                        minor_dir: self.minor_dir,
+                    });
+                self.major = self.major + 1.try_into().unwrap();
+                next
+            }
+            Dir::Right => {
+                let next = self
+                    .dims
+                    .rows
+                    .contains(&self.major)
+                    .then(|| IterIndices2dInner {
+                        dims: self.dims.clone(),
+                        major: self.major,
+                        minor: Some(self.dims.cols.start),
+                        minor_dir: self.minor_dir,
+                    });
+                self.major = self.major + 1.try_into().unwrap();
+                next
+            }
+            Dir::Down => {
+                self.major = I::checked_sub(&self.major, &I::try_from(1).unwrap())?;
+                self.dims
+                    .cols
+                    .contains(&self.major)
+                    .then(|| IterIndices2dInner {
+                        dims: self.dims.clone(),
+                        major: self.major,
+                        minor: Some(self.dims.rows.start),
+                        minor_dir: self.minor_dir,
+                    })
+            }
+            Dir::Left => {
+                self.major = I::checked_sub(&self.major, &I::try_from(1).unwrap())?;
+                self.dims
+                    .rows
+                    .contains(&self.major)
+                    .then(|| IterIndices2dInner {
+                        dims: self.dims.clone(),
+                        major: self.major,
+                        minor: Some(self.dims.cols.end - 1.try_into().unwrap()),
+                        minor_dir: self.minor_dir,
+                    })
+            }
             d => panic!("invalid iteration direction: {d:?}"),
-        };
-        self.major = self.major + 1.try_into().unwrap();
-        next
+        }
     }
 }
 
@@ -331,12 +379,17 @@ where
     <I as TryInto<usize>>::Error: Debug,
 {
     #[must_use]
-    pub fn row_diff(&self) -> I {
+    pub fn n_cells(&self) -> I {
+        self.n_cols() * self.n_rows()
+    }
+
+    #[must_use]
+    pub fn n_rows(&self) -> I {
         self.rows.end - self.rows.start
     }
 
     #[must_use]
-    pub fn col_diff(&self) -> I {
+    pub fn n_cols(&self) -> I {
         self.cols.end - self.cols.start
     }
 
@@ -348,23 +401,23 @@ where
     #[must_use]
     pub fn idx(&self, indices: Indices<I>) -> Option<usize> {
         (self.contains(indices)).then_some(
-            (self.col_diff() * indices.row + indices.col)
+            (self.n_cols() * (indices.row - self.rows.start) + (indices.col - self.cols.start))
                 .try_into()
-                .unwrap(),
+                .ok()?,
         )
     }
 
     #[must_use]
     pub fn indices(&self, idx: usize) -> Option<Indices<I>> {
-        (idx < (self.row_diff() * self.col_diff()).try_into().unwrap()).then(|| {
-            let row = I::try_from(idx).unwrap() / self.col_diff();
-            let col = I::try_from(idx).unwrap() % self.col_diff();
+        (idx < (self.n_cells()).try_into().unwrap()).then(|| {
+            let row = I::try_from(idx).unwrap() / self.n_cols() + self.rows.start;
+            let col = I::try_from(idx).unwrap() % self.n_cols() + self.cols.start;
             Indices { row, col }
         })
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Indices<I>
 where
     I: IndexCompatible,

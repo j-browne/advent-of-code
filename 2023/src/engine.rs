@@ -20,10 +20,10 @@ impl Engine {
             cols: 0..it.clone().count(),
             rows: 0..it.clone().next().unwrap().1.len(),
         };
-        let mut items = Vec::with_capacity(dims.col_diff() * dims.row_diff());
+        let mut items = Vec::with_capacity(dims.n_cells());
 
         for line in s.lines() {
-            assert_eq!(line.chars().count(), dims.col_diff());
+            assert_eq!(line.chars().count(), dims.n_cols());
 
             let mut num_start = None;
             for (i, c) in line.chars().enumerate() {

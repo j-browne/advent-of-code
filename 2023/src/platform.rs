@@ -40,6 +40,7 @@ impl Platform {
                 self.layout[(first + dir * i).unwrap()] = Tile::RoundRock;
             }
         }
+        println!("{}", self.layout);
     }
 
     pub fn cycle(&mut self) {
@@ -54,8 +55,8 @@ impl Platform {
         self.layout
             .iter_indices_2d(Dir::Right)
             .enumerate()
-            .map(|(row_i, it)| {
-                (self.layout.col_diff() - row_i)
+            .map(|(i, it)| {
+                (self.layout.n_rows() - i)
                     * it.filter(|indices| self.layout[*indices] == Tile::RoundRock)
                         .count()
             })
@@ -86,22 +87,6 @@ impl Platform {
     }
 }
 
-impl Display for Platform {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in self.layout.iter_indices_2d(Dir::Right) {
-            for indices in row {
-                match self.layout[indices] {
-                    Tile::RoundRock => write!(f, "O")?,
-                    Tile::CubeRock => write!(f, "#")?,
-                    Tile::Empty => write!(f, ".")?,
-                }
-            }
-            writeln!(f)?;
-        }
-        Ok(())
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Tile {
     RoundRock,
@@ -116,6 +101,16 @@ impl Tile {
             b'#' => Self::CubeRock,
             b'.' => Self::Empty,
             _ => panic!("unknown tile: {b}"),
+        }
+    }
+}
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Tile::RoundRock => write!(f, "O"),
+            Tile::CubeRock => write!(f, "#"),
+            Tile::Empty => write!(f, "."),
         }
     }
 }

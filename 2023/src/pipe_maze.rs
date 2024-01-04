@@ -50,6 +50,11 @@ impl Maze {
         let mut inside = false;
         let mut last_turn = None;
         let mut num_inside = 0;
+
+        // Each row should start and end with `inside` being false.
+        // Because of this, we can use `iter`
+        // It would be more "correct" to iterate over the rows, since it would not depend on the
+        // internal representation the data.
         for (map, dist) in zip(self.map.data().iter(), distances.data().iter()) {
             match (dist, last_turn, map) {
                 (None, _, _) => {

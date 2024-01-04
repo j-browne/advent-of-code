@@ -5,6 +5,7 @@ pub mod cube_game;
 pub mod desert_map;
 pub mod engine;
 pub mod galaxy;
+pub mod lagoon;
 pub mod lenses;
 pub mod mirror_images;
 pub mod mirror_map;

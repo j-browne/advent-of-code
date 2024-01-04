@@ -15,7 +15,7 @@ impl MirrorMap {
 
     #[must_use]
     pub fn num_energized(&self, start: Indices<usize>, dir: Dir) -> usize {
-        let data = vec![HashSet::new(); self.map.row_diff() * self.map.col_diff()];
+        let data = vec![HashSet::new(); self.map.n_cells()];
         let mut light = Array2d::new(self.map.dims().clone(), data);
         let mut currs = vec![(start, dir)];
         while !currs.is_empty() {
