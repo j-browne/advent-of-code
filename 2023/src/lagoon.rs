@@ -1,4 +1,4 @@
-use crate::array_2d::{Dir, Indices};
+use crate::{array_2d::Indices, dir::Dir4};
 use std::iter::zip;
 
 pub struct Lagoon {
@@ -14,10 +14,10 @@ impl Lagoon {
         for l in s.lines() {
             let mut it = l.split_whitespace();
             let dir = match it.next().unwrap() {
-                "U" => Dir::Up,
-                "R" => Dir::Right,
-                "D" => Dir::Down,
-                "L" => Dir::Left,
+                "U" => Dir4::Up,
+                "R" => Dir4::Right,
+                "D" => Dir4::Down,
+                "L" => Dir4::Left,
                 d => panic!("invalid direction: {d}"),
             };
             let dist = it.next().unwrap().parse::<i128>().unwrap();
@@ -46,10 +46,10 @@ impl Lagoon {
             let (dist, dir) = s.split_at(5);
             let dist = i128::from_str_radix(dist, 16).unwrap();
             let dir = match dir {
-                "3" => Dir::Up,
-                "0" => Dir::Right,
-                "1" => Dir::Down,
-                "2" => Dir::Left,
+                "3" => Dir4::Up,
+                "0" => Dir4::Right,
+                "1" => Dir4::Down,
+                "2" => Dir4::Left,
                 d => panic!("invalid direction: {d}"),
             };
 

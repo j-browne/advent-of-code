@@ -1,7 +1,4 @@
-use aoc_2023::{
-    array_2d::{Dir, Indices},
-    mirror_map::MirrorMap,
-};
+use aoc_2023::{array_2d::Indices, dir::Dir4, mirror_map::MirrorMap};
 use std::iter::empty;
 
 fn main() {
@@ -14,7 +11,7 @@ fn run(input: &str) -> usize {
         .chain(
             map.dims()
                 .rows
-                .map(|row| map.num_energized(Indices { row, col: 0 }, Dir::Right)),
+                .map(|row| map.num_energized(Indices { row, col: 0 }, Dir4::Right)),
         )
         .chain(map.dims().rows.map(|row| {
             map.num_energized(
@@ -22,13 +19,13 @@ fn run(input: &str) -> usize {
                     col: map.dims().cols.end - 1,
                     row,
                 },
-                Dir::Left,
+                Dir4::Left,
             )
         }))
         .chain(
             map.dims()
                 .cols
-                .map(|col| map.num_energized(Indices { col, row: 0 }, Dir::Down)),
+                .map(|col| map.num_energized(Indices { col, row: 0 }, Dir4::Down)),
         )
         .chain(map.dims().cols.map(|col| {
             map.num_energized(
@@ -36,7 +33,7 @@ fn run(input: &str) -> usize {
                     col,
                     row: map.dims().rows.end - 1,
                 },
-                Dir::Up,
+                Dir4::Up,
             )
         }))
         .max()

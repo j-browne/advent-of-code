@@ -1,9 +1,9 @@
+use crate::dir::{Dir4, Dir8};
+use num::CheckedSub;
 use std::{
     fmt::{Debug, Display},
-    ops::{Add, Div, Index, IndexMut, Mul, Neg, Range, Rem, Sub},
+    ops::{Add, Div, Index, IndexMut, Mul, Range, Rem, Sub},
 };
-
-use num::CheckedSub;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Array2d<I, T> {
@@ -120,13 +120,12 @@ where
     }
 
     #[must_use]
-    pub fn iter_indices_2d(&self, minor_dir: Dir) -> IterIndices2d<I> {
+    pub fn iter_indices_2d(&self, minor_dir: Dir4) -> IterIndices2d<I> {
         let major = match minor_dir {
-            Dir::Up => self.dims.cols.start,
-            Dir::Right => self.dims.rows.start,
-            Dir::Down => self.dims.cols.end,
-            Dir::Left => self.dims.rows.end,
-            d => panic!("invalid iteration direction: {d:?}"),
+            Dir4::Up => self.dims.cols.start,
+            Dir4::Right => self.dims.rows.start,
+            Dir4::Down => self.dims.cols.end,
+            Dir4::Left => self.dims.rows.end,
         };
         IterIndices2d {
             dims: self.dims.clone(),
@@ -135,51 +134,51 @@ where
         }
     }
 
-    pub fn neighbors(&self, indices: Indices<I>) -> impl Iterator<Item = &T> {
-        [Dir::Up, Dir::Right, Dir::Down, Dir::Left]
+    pub fn neighbors_4(&self, indices: Indices<I>) -> impl Iterator<Item = &T> {
+        [Dir4::Up, Dir4::Right, Dir4::Down, Dir4::Left]
             .into_iter()
             .filter_map(move |dir| (indices + dir).and_then(|indices| self.get(indices)))
     }
 
-    pub fn neighbors_diag(&self, indices: Indices<I>) -> impl Iterator<Item = &T> {
+    pub fn neighbors_8(&self, indices: Indices<I>) -> impl Iterator<Item = &T> {
         [
-            Dir::Up,
-            Dir::UpRight,
-            Dir::Right,
-            Dir::RightDown,
-            Dir::Down,
-            Dir::DownLeft,
-            Dir::Left,
-            Dir::UpLeft,
+            Dir8::Up,
+            Dir8::UpRight,
+            Dir8::Right,
+            Dir8::RightDown,
+            Dir8::Down,
+            Dir8::DownLeft,
+            Dir8::Left,
+            Dir8::UpLeft,
         ]
         .into_iter()
         .filter_map(move |dir| (indices + dir).and_then(|indices| self.get(indices)))
     }
 
-    pub fn neighbors_enumerated(
+    pub fn neighbors_enumerated_4(
         &self,
         indices: Indices<I>,
     ) -> impl Iterator<Item = (Indices<I>, &T)> {
-        [Dir::Up, Dir::Right, Dir::Down, Dir::Left]
+        [Dir4::Up, Dir4::Right, Dir4::Down, Dir4::Left]
             .into_iter()
             .filter_map(move |dir| {
                 (indices + dir).and_then(|indices| self.get(indices).map(|t| (indices, t)))
             })
     }
 
-    pub fn neighbors_diag_enumerated(
+    pub fn neighbors_enumerated_8(
         &self,
         indices: Indices<I>,
     ) -> impl Iterator<Item = (Indices<I>, &T)> {
         [
-            Dir::Up,
-            Dir::UpRight,
-            Dir::Right,
-            Dir::RightDown,
-            Dir::Down,
-            Dir::DownLeft,
-            Dir::Left,
-            Dir::UpLeft,
+            Dir8::Up,
+            Dir8::UpRight,
+            Dir8::Right,
+            Dir8::RightDown,
+            Dir8::Down,
+            Dir8::DownLeft,
+            Dir8::Left,
+            Dir8::UpLeft,
         ]
         .into_iter()
         .filter_map(move |dir| {
@@ -194,10 +193,9 @@ where
     I: IndexCompatible,
     <I as TryFrom<usize>>::Error: Debug,
     <I as TryInto<usize>>::Error: Debug,
-    T: Debug, //DELETEME
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in self.iter_indices_2d(Dir::Right) {
+        for row in self.iter_indices_2d(Dir4::Right) {
             for indices in row {
                 write!(f, "{}", self[indices])?;
             }
@@ -259,7 +257,7 @@ impl<'a, I, T> IntoIterator for &'a mut Array2d<I, T> {
 pub struct IterIndices2d<I> {
     dims: Dimensions<I>,
     major: I,
-    minor_dir: Dir,
+    minor_dir: Dir4,
 }
 
 impl<I> Iterator for IterIndices2d<I>
@@ -271,7 +269,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.minor_dir {
-            Dir::Up => {
+            Dir4::Up => {
                 let next = self
                     .dims
                     .cols
@@ -285,7 +283,7 @@ where
                 self.major = self.major + 1.try_into().unwrap();
                 next
             }
-            Dir::Right => {
+            Dir4::Right => {
                 let next = self
                     .dims
                     .rows
@@ -299,7 +297,7 @@ where
                 self.major = self.major + 1.try_into().unwrap();
                 next
             }
-            Dir::Down => {
+            Dir4::Down => {
                 self.major = I::checked_sub(&self.major, &I::try_from(1).unwrap())?;
                 self.dims
                     .cols
@@ -311,7 +309,7 @@ where
                         minor_dir: self.minor_dir,
                     })
             }
-            Dir::Left => {
+            Dir4::Left => {
                 self.major = I::checked_sub(&self.major, &I::try_from(1).unwrap())?;
                 self.dims
                     .rows
@@ -323,7 +321,6 @@ where
                         minor_dir: self.minor_dir,
                     })
             }
-            d => panic!("invalid iteration direction: {d:?}"),
         }
     }
 }
@@ -333,7 +330,7 @@ pub struct IterIndices2dInner<I> {
     dims: Dimensions<I>,
     major: I,
     minor: Option<I>,
-    minor_dir: Dir,
+    minor_dir: Dir4,
 }
 
 impl<I> Iterator for IterIndices2dInner<I>
@@ -347,20 +344,18 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let minor = self.minor?;
         let next = match self.minor_dir {
-            Dir::Up | Dir::Down => self.dims.rows.contains(&minor).then_some(Indices {
+            Dir4::Up | Dir4::Down => self.dims.rows.contains(&minor).then_some(Indices {
                 row: minor,
                 col: self.major,
             }),
-            Dir::Right | Dir::Left => self.dims.cols.contains(&minor).then_some(Indices {
+            Dir4::Right | Dir4::Left => self.dims.cols.contains(&minor).then_some(Indices {
                 row: self.major,
                 col: minor,
             }),
-            d => panic!("invalid iteration direction: {d:?}"),
         };
         match self.minor_dir {
-            Dir::Up | Dir::Left => self.minor = I::checked_sub(&minor, &1.try_into().unwrap()),
-            Dir::Right | Dir::Down => self.minor = Some(minor + 1.try_into().unwrap()),
-            _ => unreachable!(),
+            Dir4::Up | Dir4::Left => self.minor = I::checked_sub(&minor, &1.try_into().unwrap()),
+            Dir4::Right | Dir4::Down => self.minor = Some(minor + 1.try_into().unwrap()),
         }
         next
     }
@@ -458,145 +453,4 @@ impl<T> IndexCompatible for T where
         + TryInto<usize>
         + TryFrom<usize>
 {
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Dir {
-    Up,
-    Right,
-    Down,
-    Left,
-    UpRight,
-    RightDown,
-    DownLeft,
-    UpLeft,
-}
-
-impl Neg for Dir {
-    type Output = Dir;
-    fn neg(self) -> Self::Output {
-        match self {
-            Dir::Up => Dir::Down,
-            Dir::Right => Dir::Left,
-            Dir::Down => Dir::Up,
-            Dir::Left => Dir::Right,
-            Dir::UpRight => Dir::DownLeft,
-            Dir::RightDown => Dir::UpLeft,
-            Dir::DownLeft => Dir::UpRight,
-            Dir::UpLeft => Dir::RightDown,
-        }
-    }
-}
-
-impl<I> Add<Dir> for Indices<I>
-where
-    I: IndexCompatible,
-    <I as TryFrom<usize>>::Error: Debug,
-    <I as TryInto<usize>>::Error: Debug,
-{
-    type Output = Option<Indices<I>>;
-
-    fn add(self, rhs: Dir) -> Self::Output {
-        match rhs {
-            Dir::Up => self
-                .row
-                .checked_sub(&1.try_into().unwrap())
-                .map(|row| Indices { row, col: self.col }),
-            Dir::Right => Some(Indices {
-                row: self.row,
-                col: self.col + 1.try_into().unwrap(),
-            }),
-            Dir::Down => Some(Indices {
-                row: self.row + 1.try_into().unwrap(),
-                col: self.col,
-            }),
-            Dir::Left => self
-                .col
-                .checked_sub(&1.try_into().unwrap())
-                .map(|col| Indices { row: self.row, col }),
-            Dir::UpRight => self
-                .row
-                .checked_sub(&1.try_into().unwrap())
-                .map(|row| Indices {
-                    row,
-                    col: self.col + 1.try_into().unwrap(),
-                }),
-            Dir::RightDown => Some(Indices {
-                row: self.row + 1.try_into().unwrap(),
-                col: self.col + 1.try_into().unwrap(),
-            }),
-            Dir::DownLeft => self
-                .col
-                .checked_sub(&1.try_into().unwrap())
-                .map(|col| Indices {
-                    row: self.row + 1.try_into().unwrap(),
-                    col,
-                }),
-            Dir::UpLeft => self
-                .row
-                .checked_sub(&1.try_into().unwrap())
-                .and_then(|row| {
-                    self.col
-                        .checked_sub(&1.try_into().unwrap())
-                        .map(|col| Indices { row, col })
-                }),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct DirDist<T>(pub Dir, pub T);
-
-impl<I> Add<DirDist<I>> for Indices<I>
-where
-    I: IndexCompatible,
-    <I as TryFrom<usize>>::Error: Debug,
-    <I as TryInto<usize>>::Error: Debug,
-{
-    type Output = Option<Indices<I>>;
-
-    fn add(self, rhs: DirDist<I>) -> Self::Output {
-        match rhs {
-            DirDist(Dir::Up, dist) => self
-                .row
-                .checked_sub(&dist)
-                .map(|row| Indices { row, col: self.col }),
-            DirDist(Dir::Right, dist) => Some(Indices {
-                row: self.row,
-                col: self.col + dist,
-            }),
-            DirDist(Dir::Down, dist) => Some(Indices {
-                row: self.row + dist,
-                col: self.col,
-            }),
-            DirDist(Dir::Left, dist) => self
-                .col
-                .checked_sub(&dist)
-                .map(|col| Indices { row: self.row, col }),
-            DirDist(Dir::UpRight, dist) => self.row.checked_sub(&dist).map(|row| Indices {
-                row,
-                col: self.col + dist,
-            }),
-            DirDist(Dir::RightDown, dist) => Some(Indices {
-                row: self.row + dist,
-                col: self.col + dist,
-            }),
-            DirDist(Dir::DownLeft, dist) => self.col.checked_sub(&dist).map(|col| Indices {
-                row: self.row + dist,
-                col,
-            }),
-            DirDist(Dir::UpLeft, dist) => self
-                .row
-                .checked_sub(&dist)
-                .and_then(|row| self.col.checked_sub(&dist).map(|col| Indices { row, col })),
-        }
-    }
-}
-
-impl<T> Mul<T> for Dir {
-    type Output = DirDist<T>;
-
-    fn mul(self, rhs: T) -> Self::Output {
-        DirDist(self, rhs)
-    }
 }

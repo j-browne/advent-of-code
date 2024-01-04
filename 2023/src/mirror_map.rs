@@ -1,4 +1,7 @@
-use crate::array_2d::{Array2d, Dimensions, Dir, Indices};
+use crate::{
+    array_2d::{Array2d, Dimensions, Indices},
+    dir::Dir4,
+};
 use std::collections::HashSet;
 
 pub struct MirrorMap {
@@ -14,7 +17,7 @@ impl MirrorMap {
     }
 
     #[must_use]
-    pub fn num_energized(&self, start: Indices<usize>, dir: Dir) -> usize {
+    pub fn num_energized(&self, start: Indices<usize>, dir: Dir4) -> usize {
         let data = vec![HashSet::new(); self.map.n_cells()];
         let mut light = Array2d::new(self.map.dims().clone(), data);
         let mut currs = vec![(start, dir)];
@@ -68,22 +71,21 @@ impl Tile {
 
     #[must_use]
     #[allow(clippy::match_same_arms)]
-    fn next_dir(self, from: Dir) -> Vec<Dir> {
+    fn next_dir(self, from: Dir4) -> Vec<Dir4> {
         match (self, from) {
             (Self::Empty, _) => vec![from],
-            (Self::MirrorUpRight, Dir::Up) => vec![Dir::Right],
-            (Self::MirrorUpRight, Dir::Right) => vec![Dir::Up],
-            (Self::MirrorUpRight, Dir::Down) => vec![Dir::Left],
-            (Self::MirrorUpRight, Dir::Left) => vec![Dir::Down],
-            (Self::MirrorDownRight, Dir::Up) => vec![Dir::Left],
-            (Self::MirrorDownRight, Dir::Right) => vec![Dir::Down],
-            (Self::MirrorDownRight, Dir::Down) => vec![Dir::Right],
-            (Self::MirrorDownRight, Dir::Left) => vec![Dir::Up],
-            (Self::SplitterUpDown, Dir::Right | Dir::Left) => vec![Dir::Up, Dir::Down],
-            (Self::SplitterUpDown, Dir::Up | Dir::Down) => vec![from],
-            (Self::SplitterRightLeft, Dir::Right | Dir::Left) => vec![from],
-            (Self::SplitterRightLeft, Dir::Up | Dir::Down) => vec![Dir::Right, Dir::Left],
-            _ => panic!("invalid direction: {from:?}"),
+            (Self::MirrorUpRight, Dir4::Up) => vec![Dir4::Right],
+            (Self::MirrorUpRight, Dir4::Right) => vec![Dir4::Up],
+            (Self::MirrorUpRight, Dir4::Down) => vec![Dir4::Left],
+            (Self::MirrorUpRight, Dir4::Left) => vec![Dir4::Down],
+            (Self::MirrorDownRight, Dir4::Up) => vec![Dir4::Left],
+            (Self::MirrorDownRight, Dir4::Right) => vec![Dir4::Down],
+            (Self::MirrorDownRight, Dir4::Down) => vec![Dir4::Right],
+            (Self::MirrorDownRight, Dir4::Left) => vec![Dir4::Up],
+            (Self::SplitterUpDown, Dir4::Right | Dir4::Left) => vec![Dir4::Up, Dir4::Down],
+            (Self::SplitterUpDown, Dir4::Up | Dir4::Down) => vec![from],
+            (Self::SplitterRightLeft, Dir4::Right | Dir4::Left) => vec![from],
+            (Self::SplitterRightLeft, Dir4::Up | Dir4::Down) => vec![Dir4::Right, Dir4::Left],
         }
     }
 }

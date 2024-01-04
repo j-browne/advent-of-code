@@ -1,4 +1,4 @@
-use crate::array_2d::{Array2d, Dir};
+use crate::{array_2d::Array2d, dir::Dir4};
 use std::{collections::HashMap, fmt::Display};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,7 +13,7 @@ impl Platform {
         Self { layout }
     }
 
-    pub fn tilt(&mut self, dir: Dir) {
+    pub fn tilt(&mut self, dir: Dir4) {
         let dir = -dir;
         for it in self.layout.iter_indices_2d(dir) {
             let mut first = it.clone().next().unwrap();
@@ -44,16 +44,16 @@ impl Platform {
     }
 
     pub fn cycle(&mut self) {
-        self.tilt(Dir::Up);
-        self.tilt(Dir::Left);
-        self.tilt(Dir::Down);
-        self.tilt(Dir::Right);
+        self.tilt(Dir4::Up);
+        self.tilt(Dir4::Left);
+        self.tilt(Dir4::Down);
+        self.tilt(Dir4::Right);
     }
 
     #[must_use]
     pub fn load(&self) -> usize {
         self.layout
-            .iter_indices_2d(Dir::Right)
+            .iter_indices_2d(Dir4::Right)
             .enumerate()
             .map(|(i, it)| {
                 (self.layout.n_rows() - i)

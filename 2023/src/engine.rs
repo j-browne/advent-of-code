@@ -72,7 +72,7 @@ impl Engine {
                 if let Item::Symbol(_) = self.schematic[indices] {
                     let set = self
                         .schematic
-                        .neighbors_diag(indices)
+                        .neighbors_8(indices)
                         .filter_map(|x| {
                             if let Item::Number(p) = x {
                                 Some(p)
@@ -100,7 +100,7 @@ impl Engine {
                 if let Item::Symbol('*') = self.schematic[indices] {
                     let nums = self
                         .schematic
-                        .neighbors_diag(indices)
+                        .neighbors_8(indices)
                         .filter_map(|x| {
                             if let Item::Number(p) = x {
                                 Some(p)
