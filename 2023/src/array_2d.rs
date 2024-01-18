@@ -185,6 +185,18 @@ where
             (indices + dir).and_then(|indices| self.get(indices).map(|t| (indices, t)))
         })
     }
+
+    pub fn print_with<F>(&self, f: F)
+    where
+        F: Fn(&T) -> String,
+    {
+        for row in self.iter_indices_2d(Dir4::Right) {
+            for indices in row {
+                print!("{}", f(&self[indices]));
+            }
+            println!();
+        }
+    }
 }
 
 impl<I, T> Display for Array2d<I, T>
