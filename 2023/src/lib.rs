@@ -15,3 +15,4 @@ pub mod pipe_maze;
 pub mod platform;
 pub mod races;
 pub mod scratchcard;
+pub mod workflow;
