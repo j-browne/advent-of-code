@@ -9,7 +9,7 @@ fn run(input: &str) -> usize {
         .lines()
         .filter_map(|l| {
             let r = RedNosedReport::new(l);
-            r.is_safe().then(|| r)
+            r.is_safe().then_some(r)
         })
         .count()
 }

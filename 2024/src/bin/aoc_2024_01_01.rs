@@ -7,8 +7,8 @@ fn run(input: &str) -> u32 {
     let mut nums2 = Vec::new();
     for l in input.lines() {
         let mut nums = l.split_whitespace();
-        nums1.push(nums.next().unwrap().parse::<i32>().unwrap());
-        nums2.push(nums.next().unwrap().parse::<i32>().unwrap());
+        nums1.push(nums.next().unwrap().parse::<u32>().unwrap());
+        nums2.push(nums.next().unwrap().parse::<u32>().unwrap());
     }
 
     nums1.sort_unstable();
@@ -16,8 +16,8 @@ fn run(input: &str) -> u32 {
 
     nums1
         .into_iter()
-        .zip(nums2.into_iter())
-        .map(|(n1, n2)| (n2 - n1).abs() as u32)
+        .zip(nums2)
+        .map(|(n1, n2)| n1.abs_diff(n2))
         .sum()
 }
 

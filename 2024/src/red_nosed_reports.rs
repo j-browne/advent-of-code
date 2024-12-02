@@ -13,6 +13,7 @@ impl RedNosedReport {
         Self { levels }
     }
 
+    #[must_use]
     pub fn is_safe(&self) -> bool {
         enum Dir {
             Pos,
@@ -21,7 +22,7 @@ impl RedNosedReport {
 
         let mut dir = None;
         for (n1, n2) in self.levels.iter().zip(self.levels.iter().skip(1)) {
-            if let None = dir {
+            if dir.is_none() {
                 if n2 > n1 {
                     dir = Some(Dir::Pos);
                 } else {
@@ -47,6 +48,7 @@ impl RedNosedReport {
         true
     }
 
+    #[must_use]
     pub fn is_safe_with_dampener(&self) -> bool {
         if self.is_safe() {
             return true;

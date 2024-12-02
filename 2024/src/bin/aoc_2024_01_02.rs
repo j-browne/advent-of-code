@@ -7,15 +7,15 @@ fn run(input: &str) -> u32 {
     let mut nums2 = Vec::new();
     for l in input.lines() {
         let mut nums = l.split_whitespace();
-        nums1.push(nums.next().unwrap().parse::<i32>().unwrap());
-        nums2.push(nums.next().unwrap().parse::<i32>().unwrap());
+        nums1.push(nums.next().unwrap().parse::<u32>().unwrap());
+        nums2.push(nums.next().unwrap().parse::<u32>().unwrap());
     }
 
     nums2.sort_unstable();
 
     nums1
         .into_iter()
-        .map(|n1| n1 as u32 * nums2.iter().filter(|n2| n1 == **n2).count() as u32)
+        .map(|n1| n1 * u32::try_from(nums2.iter().filter(|n2| n1 == **n2).count()).unwrap())
         .sum()
 }
 
