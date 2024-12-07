@@ -1,4 +1,5 @@
 pub mod array_2d;
+pub mod bridge_repair;
 pub mod corrupted_computer;
 pub mod dir;
 pub mod guard_patrol;
