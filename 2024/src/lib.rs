@@ -1,3 +1,4 @@
+pub mod antenna;
 pub mod array_2d;
 pub mod bridge_repair;
 pub mod corrupted_computer;
