@@ -7,4 +7,5 @@ pub mod disk_map;
 pub mod guard_patrol;
 pub mod print_queue;
 pub mod red_nosed_reports;
+pub mod trails;
 pub mod word_search;
