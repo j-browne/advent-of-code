@@ -11,14 +11,14 @@ impl Map {
     #[must_use]
     pub fn new(s: &str) -> Self {
         let dims = Dimensions {
-            rows: 0..s.lines().clone().count() as isize,
-            cols: 0..s.lines().clone().next().unwrap().len() as isize,
+            rows: 0..s.lines().clone().count().try_into().unwrap(),
+            cols: 0..s.lines().clone().next().unwrap().len().try_into().unwrap(),
         };
         let mut antennae = HashMap::new();
         for (row, line) in s.lines().enumerate() {
-            let row = row as isize;
+            let row = row.try_into().unwrap();
             for (col, b) in line.bytes().enumerate() {
-                let col = col as isize;
+                let col = col.try_into().unwrap();
                 if b.is_ascii_alphanumeric() {
                     antennae
                         .entry(b)
@@ -33,7 +33,7 @@ impl Map {
     #[must_use]
     pub fn num_antinodes_one(&self) -> usize {
         let mut antinodes = HashSet::new();
-        for (_, indices_list) in &self.antennae {
+        for indices_list in self.antennae.values() {
             for i in 0..indices_list.len() {
                 for j in (i + 1)..indices_list.len() {
                     let d_row = indices_list[j].row - indices_list[i].row;
@@ -62,7 +62,7 @@ impl Map {
     #[must_use]
     pub fn num_antinodes_many(&self) -> usize {
         let mut antinodes = HashSet::new();
-        for (_, indices_list) in &self.antennae {
+        for indices_list in self.antennae.values() {
             for i in 0..indices_list.len() {
                 for j in (i + 1)..indices_list.len() {
                     let d_row = indices_list[j].row - indices_list[i].row;
