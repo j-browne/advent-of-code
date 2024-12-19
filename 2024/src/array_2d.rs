@@ -140,6 +140,12 @@ where
             .filter_map(move |dir| (indices + dir).and_then(|indices| self.get(indices)))
     }
 
+    pub fn neighbors_4_opt(&self, indices: Indices<I>) -> impl Iterator<Item = Option<&T>> {
+        [Dir4::Up, Dir4::Right, Dir4::Down, Dir4::Left]
+            .into_iter()
+            .map(move |dir| (indices + dir).and_then(|indices| self.get(indices)))
+    }
+
     pub fn neighbors_8(&self, indices: Indices<I>) -> impl Iterator<Item = &T> {
         [
             Dir8::Up,
@@ -153,6 +159,21 @@ where
         ]
         .into_iter()
         .filter_map(move |dir| (indices + dir).and_then(|indices| self.get(indices)))
+    }
+
+    pub fn neighbors_8_opt(&self, indices: Indices<I>) -> impl Iterator<Item = Option<&T>> {
+        [
+            Dir8::Up,
+            Dir8::UpRight,
+            Dir8::Right,
+            Dir8::RightDown,
+            Dir8::Down,
+            Dir8::DownLeft,
+            Dir8::Left,
+            Dir8::UpLeft,
+        ]
+        .into_iter()
+        .map(move |dir| (indices + dir).and_then(|indices| self.get(indices)))
     }
 
     pub fn neighbors_enumerated_4(
@@ -424,7 +445,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Indices<I>
 where
     I: IndexCompatible,
