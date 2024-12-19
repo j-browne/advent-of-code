@@ -1,5 +1,6 @@
 pub mod antenna;
 pub mod array_2d;
+pub mod bathroom_robots;
 pub mod bridge_repair;
 pub mod claw_game;
 pub mod corrupted_computer;
