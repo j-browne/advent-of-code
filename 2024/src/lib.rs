@@ -1,6 +1,7 @@
 pub mod antenna;
 pub mod array_2d;
 pub mod bridge_repair;
+pub mod claw_game;
 pub mod corrupted_computer;
 pub mod dir;
 pub mod disk_map;
