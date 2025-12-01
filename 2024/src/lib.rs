@@ -12,4 +12,5 @@ pub mod print_queue;
 pub mod red_nosed_reports;
 pub mod stones;
 pub mod trails;
+pub mod warehouse_robot;
 pub mod word_search;

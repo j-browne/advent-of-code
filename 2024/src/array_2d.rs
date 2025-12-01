@@ -98,6 +98,14 @@ where
         self.dims.indices(idx)
     }
 
+    pub fn swap(&mut self, a: Indices<I>, b: Indices<I>) {
+        if a != b && self.contains(a) && self.contains(b) {
+            if let (Some(a), Some(b)) = (self.idx(a), self.idx(b)) {
+                self.data.swap(a, b);
+            }
+        }
+    }
+
     #[must_use]
     pub fn position<F>(&self, predicate: F) -> Option<Indices<I>>
     where
