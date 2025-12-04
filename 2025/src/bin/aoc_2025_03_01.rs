@@ -4,9 +4,9 @@ fn main() {
     println!("{}", run(include_str!("input/aoc_2025_03.txt")));
 }
 
-fn run(input: &str) -> u32 {
+fn run(input: &str) -> u64 {
     let batteries = Batteries::new(input);
-    batteries.bank_maxes().iter().sum()
+    batteries.sum_max_joltage(2)
 }
 
 mod test {
