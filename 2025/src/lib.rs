@@ -1,3 +1,6 @@
+pub mod array_2d;
 pub mod batteries;
 pub mod dial_lock;
+pub mod dir;
+pub mod forklift;
 pub mod gift_shop_ids;
