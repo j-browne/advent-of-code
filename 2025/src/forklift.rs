@@ -16,20 +16,24 @@ impl RollMap {
         Self { roll_map }
     }
 
-    #[must_use]
-    pub fn num_accessible(&self) -> usize {
-        self.roll_map
-            .iter()
-            .enumerate()
-            .filter(|(idx, v)| {
-                **v && self
-                    .roll_map
-                    .neighbors_8(self.roll_map.indices(*idx).unwrap())
+    pub fn remove(&mut self) -> usize {
+        let mut removed = 0;
+
+        let old_roll_map = self.roll_map.clone();
+        for (idx, v) in self.roll_map.iter_mut().enumerate() {
+            if *v
+                && old_roll_map
+                    .neighbors_8(old_roll_map.indices(idx).unwrap())
                     .filter(|v| **v)
                     .count()
                     < 4
-            })
-            .count()
+            {
+                *v = false;
+                removed += 1;
+            }
+        }
+
+        removed
     }
 }
 

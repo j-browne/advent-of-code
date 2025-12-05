@@ -5,7 +5,8 @@ fn main() {
 }
 
 fn run(input: &str) -> usize {
-    RollMap::new(input).num_accessible()
+    let mut roll_map = RollMap::new(input);
+    roll_map.remove()
 }
 
 mod test {
