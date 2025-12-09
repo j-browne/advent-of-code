@@ -1,6 +1,7 @@
 pub mod array_2d;
 pub mod batteries;
 pub mod cafeteria;
+pub mod cephalopod_math;
 pub mod dial_lock;
 pub mod dir;
 pub mod forklift;
