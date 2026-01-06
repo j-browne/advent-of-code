@@ -1,3 +1,5 @@
+use std::iter::zip;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Operation {
     Add,
@@ -23,21 +25,69 @@ pub struct MathProblems {
 
 impl MathProblems {
     #[must_use]
-    pub fn new(s: &str) -> Self {
-        let lines = s.lines();
-        let num_lines = lines.clone().count();
-        let operands = lines
-            .clone()
-            .take(num_lines - 1)
-            .map(|l| l.split_whitespace().map(|x| x.parse().unwrap()).collect())
+    pub fn from_rows_ttb(s: &str) -> Self {
+        let s = s.strip_suffix('\n').unwrap();
+        let (operands, operations) = s.rsplit_once('\n').unwrap();
+        let operations = operations.split_whitespace().map(Operation::new).collect();
+
+        let nums = operands
+            .lines()
+            .map(|l| {
+                l.split_whitespace()
+                    .map(|x| x.parse().unwrap())
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+
+        let num_rows = nums.len();
+        let num_cols = nums[0].len();
+
+        let operands = (0..num_cols)
+            .map(|i_col| (0..num_rows).map(|i_row| nums[i_row][i_col]).collect())
             .collect();
-        let operations = lines
-            .skip(num_lines - 1)
-            .next()
-            .unwrap()
-            .split_whitespace()
-            .map(Operation::new)
+
+        Self {
+            operands,
+            operations,
+        }
+    }
+
+    #[must_use]
+    pub fn from_cols_rtl(s: &str) -> Self {
+        let s = s.strip_suffix('\n').unwrap();
+        let (operands, operations) = s.rsplit_once('\n').unwrap();
+        let operations = operations.split_whitespace().map(Operation::new).collect();
+
+        let bytes = operands
+            .lines()
+            .map(|l| l.bytes().collect::<Vec<_>>())
+            .collect::<Vec<_>>();
+
+        let num_rows = bytes.len();
+        let num_cols = bytes[0].len();
+
+        let bytes = (0..num_cols)
+            .map(|i_col| {
+                String::from_utf8(
+                    (0..num_rows)
+                        .map(|i_row| bytes[i_row][i_col])
+                        .collect::<Vec<_>>(),
+                )
+                .unwrap()
+            })
+            .collect::<Vec<_>>();
+        let operands = bytes
+            .split(|col| col.trim().is_empty())
+            .map(|group| {
+                group
+                    .iter()
+                    .map(|col| col.trim().parse().unwrap())
+                    .collect()
+            })
             .collect();
+        println!("{operands:?}");
+        println!("{operations:?}");
+
         Self {
             operands,
             operations,
@@ -47,18 +97,11 @@ impl MathProblems {
     #[must_use]
     pub fn grand_total(&self) -> u64 {
         let mut grand_total = 0;
-        for (operation_idx, operation) in self.operations.iter().enumerate() {
-            let mut total = match operation {
-                Operation::Add => 0,
-                Operation::Multiply => 1,
+        for (operation, operands) in zip(self.operations.iter(), self.operands.iter()) {
+            grand_total += match operation {
+                Operation::Add => operands.iter().sum::<u64>(),
+                Operation::Multiply => operands.iter().product::<u64>(),
             };
-            for operand_list in &self.operands {
-                match operation {
-                    Operation::Add => total += operand_list[operation_idx],
-                    Operation::Multiply => total *= operand_list[operation_idx],
-                };
-            }
-            grand_total += total
         }
         grand_total
     }
