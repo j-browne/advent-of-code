@@ -6,3 +6,4 @@ pub mod dial_lock;
 pub mod dir;
 pub mod forklift;
 pub mod gift_shop_ids;
+pub mod tachyon_manifold;
