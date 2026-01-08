@@ -8,3 +8,6 @@ edition = "2021"
 regex = "*"
 rust-crypto = "^0.2"
 pcre = "*"
+
+[lints]
+workspace = true

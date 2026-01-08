@@ -6,6 +6,5 @@ edition = "2021"
 [dependencies]
 num = "0.4.1"
 
-[lints.clippy]
-pedantic = "warn"
-missing_panics_doc = "allow"
+[lints]
+workspace = true

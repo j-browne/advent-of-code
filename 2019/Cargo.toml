@@ -8,3 +8,6 @@ edition = "2021"
 permutohedron = "*"
 num = "*"
 ordered-float = "*"
+
+[lints]
+workspace = true
