@@ -8,3 +8,4 @@ pub mod forklift;
 pub mod gift_shop_ids;
 pub mod junction_boxes;
 pub mod tachyon_manifold;
+pub mod tiles;
