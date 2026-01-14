@@ -70,11 +70,10 @@ impl Tiles {
                 return false;
             }
 
-            #[allow(clippy::collapsible_if, reason = "rustfmt won't format it if inlined")]
-            if let Some(last_zone) = last_zone {
-                if !valid_zone_crossing(last_zone, new_zone) {
-                    return false;
-                }
+            if let Some(last_zone) = last_zone
+                && !valid_zone_crossing(last_zone, new_zone)
+            {
+                return false;
             }
             last_zone = Some(new_zone);
         }
