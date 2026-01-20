@@ -7,5 +7,6 @@ pub mod dir;
 pub mod forklift;
 pub mod gift_shop_ids;
 pub mod junction_boxes;
+pub mod machines;
 pub mod tachyon_manifold;
 pub mod tiles;
